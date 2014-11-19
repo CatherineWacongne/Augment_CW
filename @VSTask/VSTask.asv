@@ -23,7 +23,8 @@ classdef VSTask < handle & Task
         
         trialSetExternal = false;
         keepTrialsforGeneralization = false; 
-        
+        train_trials = 0;
+        generalization_trials = 0;
         n_genTrials = 200;
         
         fp_on = 0;      % used for plotting
@@ -32,11 +33,7 @@ classdef VSTask < handle & Task
         old_fixpos=0;   % used for plotting: previously plotted fixation position
         old_reward=0;
     end
-    properties
-        train_trials = 0;
-        generalization_trials = 0;
-        
-    end
+    
     
     methods
         
@@ -294,19 +291,7 @@ classdef VSTask < handle & Task
                 obj.target_pos = floor((trial_code-obj.cue_col*1e4)/1e3)+1;
                 poss_col = 1:3;
                 poss_col(obj.cue_col)=[];
-                bin_distr = num2str(dec2bin(mod(trial_code,100)-1));
-                obj.distr_col = zeros(1,numel(bin_distr));
-                for d = 1:numel(bin_distr)
-                    obj.distr_col(d)=poss_col(str2num(bin_distr(d))+1);
-                end
-                
-                obj.display_col = zeros(1,7);
-                obj.display_col(obj.target_pos-1)=obj.cue_col;
-                if obj.target_pos==2
-                    obj.display_col(2:end)=obj.distr_col;
-                else
-                    obj.display_col([1:obj.target_pos-2  obj.target_pos:end])=obj.distr_col;
-                end
+                obj.distr_col = dec2bin(mod(trial_code,100)-1)
             end
             
             obj.cueInput = (obj.cue_col-1)*obj.n_pos + obj.cue_pos;

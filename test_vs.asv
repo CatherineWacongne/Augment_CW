@@ -16,6 +16,7 @@ n_trials = 10000*5;
 
 TrainCol=0;
 TrainPos = 0;
+generalize = 1;
 
 %% Parameters
 % learning
@@ -369,9 +370,11 @@ plot(a3,1:10,1:10,'Color',[1,1,1]);
 
 
 
-load('TrainedColPosVS')
+load('TrainedColPos')
 t3 = VSTask();
+t3.setTrialsForGeneralisation;
 
+%%
 epochs = 50000*40;
 n_trials = 10000*40;
 
@@ -459,5 +462,5 @@ end % For epoch
 [converged3, c_epoch3]  = calcConv(trial_res3, 0.1 )
 convergence_res3 = [converged3, c_epoch3]
 
-save('TrainedColPosVS', 'n')
-save('141118_resultsComplete2.mat', 'n', 't3', 'gamma', 'beta', 'lambda', 'ny_memory', 'ny_normal')
+save('TrainedColPosVS_gen', 'n')
+save('141118_resultsComplete_gen.mat', 'n', 't3', 'gamma', 'beta', 'lambda', 'ny_memory', 'ny_normal')

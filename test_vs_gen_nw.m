@@ -1,11 +1,11 @@
 % Makes a plot like figure 2c.
 
-function [net_success, input_acts, hidden_acts,q_acts, fig_hnd, pretty ] = test_vs_nw(nw, test, train) 
+function [net_success, input_acts, hidden_acts,q_acts, fig_hnd, pretty ] = test_vs_gen_nw(nw, test, train) 
 
 
   pretty = false;
-  trial_type_labels = {'R-1','R-2','R-3','R-4','R-5','R-6','R-7','G-1','G-2','G-3','G-4','G-5','G-6','G-7','B-1','B-2','B-3','B-4','B-5','B-6','B-7'};
-  trial_types = [[ones(7,1);2*ones(7,1);3*ones(7,1)] repmat([2:8]', 3,1)];%[1 2; 1 3; 1 4; 1 5]; % p-l;p-r;a-l;a-r
+  %trial_type_labels = {'R-1','R-2','R-3','R-4','R-5','R-6','R-7','G-1','G-2','G-3','G-4','G-5','G-6','G-7','B-1','B-2','B-3','B-4','B-5','B-6','B-7'};
+  trial_types = test;%[[ones(7,1);2*ones(7,1);3*ones(7,1)] repmat([2:8]', 3,1)];%[1 2; 1 3; 1 4; 1 5]; % p-l;p-r;a-l;a-r
 
   input_acts = zeros(size(trial_types,1), 50, nw.n_inputs*3);
   hidden_acts = zeros(size(trial_types,1), 50,nw.ny);
@@ -36,10 +36,11 @@ function [net_success, input_acts, hidden_acts,q_acts, fig_hnd, pretty ] = test_
 
       % Task Settings:
       t = VSTask();
-     
+      t.train_trials = test;
+      t.generalization_trials = train;
 
-      t.setTrialType(trial_types(i,1), trial_types(i,2));
-      
+      %t.setTrialType(trial_types(i,1), trial_types(i,2));
+      t.pickTrialType
       nw.resetTraces();
       nw.previous_qa = 0;
       nw.delta = 0;
