@@ -1,6 +1,6 @@
 % Makes a plot like figure 2c.
 
-function [net_success, input_acts, hidden_acts,q_acts, fig_hnd, pretty ] = test_vs_nw(nw, test, train) 
+function [net_success, input_acts, hidden_acts,q_acts, fig_hnd, pretty ] = test_vs_nw(nw) 
 
 
   pretty = false;
@@ -30,7 +30,7 @@ function [net_success, input_acts, hidden_acts,q_acts, fig_hnd, pretty ] = test_
     nw.delta = 0;
 
     % Test network on all trial-types
-    for i = 1:numel(trial_types)
+    for i = 1:size(trial_types,1)
 
       epoch = 1;
 

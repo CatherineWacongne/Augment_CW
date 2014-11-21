@@ -36,6 +36,7 @@ classdef VSTask < handle & Task
         train_trials = 0;
         generalization_trials = 0;
         
+        
     end
     
     methods
@@ -291,10 +292,11 @@ classdef VSTask < handle & Task
             elseif (~obj.trialSetExternal && obj.keepTrialsforGeneralization) 
                 trial_code = obj.train_trials(randi(numel(obj.train_trials)));
                 obj.cue_col = floor(trial_code/1e4);
+                obj.cue_pos = 1;
                 obj.target_pos = floor((trial_code-obj.cue_col*1e4)/1e3)+1;
                 poss_col = 1:3;
                 poss_col(obj.cue_col)=[];
-                bin_distr = num2str(dec2bin(mod(trial_code,100)-1));
+                bin_distr = num2str(dec2bin(mod(trial_code,100)-1,6));
                 obj.distr_col = zeros(1,numel(bin_distr));
                 for d = 1:numel(bin_distr)
                     obj.distr_col(d)=poss_col(str2num(bin_distr(d))+1);
@@ -310,11 +312,39 @@ classdef VSTask < handle & Task
             end
             
             obj.cueInput = (obj.cue_col-1)*obj.n_pos + obj.cue_pos;
-            obj.intTrialType = (obj.cue_col-1)*obj.n_pos + obj.target_pos;
+            obj.intTrialType = trial_code;%(obj.cue_col-1)*obj.n_pos + obj.target_pos;
             obj.trialTarget = obj.target_pos+obj.fix_action_index;
             
         end
         
+        
+        function setTrialTypeGen(obj,trial_code)
+            
+            obj.cue_col = floor(trial_code/1e4);
+            obj.cue_pos = 1;
+            obj.target_pos = floor((trial_code-obj.cue_col*1e4)/1e3)+1;
+            poss_col = 1:3;
+            poss_col(obj.cue_col)=[];
+            bin_distr = num2str(dec2bin(mod(trial_code,100)-1,obj.n_pos-2));
+            obj.distr_col = zeros(1,numel(bin_distr));
+            for d = 1:numel(bin_distr)
+                obj.distr_col(d)=poss_col(str2num(bin_distr(d))+1);
+            end
+            
+            obj.display_col = zeros(1,7);
+            obj.display_col(obj.target_pos-1)=obj.cue_col;
+            if obj.target_pos==2
+                obj.display_col(2:end)=obj.distr_col;
+            else
+                obj.display_col([1:obj.target_pos-2  obj.target_pos:end])=obj.distr_col;
+            end
+            
+            
+            obj.cueInput = (obj.cue_col-1)*obj.n_pos + obj.cue_pos;
+            obj.intTrialType = (obj.cue_col-1)*obj.n_pos + obj.target_pos;
+            obj.trialTarget = obj.target_pos+obj.fix_action_index;
+            obj.trialSetExternal = true;
+        end
         
         function setTrialsForGeneralisation(obj)
             % generate the indices of all possible trials
@@ -332,6 +362,7 @@ classdef VSTask < handle & Task
             a = randperm(numel(indices));
             obj.generalization_trials = indices(a(1:obj.n_genTrials));
             obj.train_trials = indices(a(obj.n_genTrials+1:end));
+            obj.keepTrialsforGeneralization = true;
         end
     end
     

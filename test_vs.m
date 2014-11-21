@@ -370,13 +370,13 @@ plot(a3,1:10,1:10,'Color',[1,1,1]);
 
 
 
-load('TrainedColPos')
+%load('TrainedColPos')
 t3 = VSTask();
 t3.setTrialsForGeneralisation;
 
 %%
-epochs = 50000*40;
-n_trials = 10000*40;
+epochs = 50000*60;
+n_trials = 10000*60;
 
 % Reset all variables:
 % n_trials (estimated number of completed trials)
@@ -463,4 +463,4 @@ end % For epoch
 convergence_res3 = [converged3, c_epoch3]
 
 save('TrainedColPosVS_gen', 'n')
-save('141119_resultsComplete_gen.mat', 'n', 't3', 'gamma', 'beta', 'lambda', 'ny_memory', 'ny_normal')
+save('141121_resultsComplete_gen.mat', 'n', 't3', 'gamma', 'beta', 'lambda', 'ny_memory', 'ny_normal', 'trial_types3','rewards3')
