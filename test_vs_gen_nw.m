@@ -1,6 +1,6 @@
 % Makes a plot like figure 2c.
 
-function [net_success, input_acts, hidden_acts,q_acts, fig_hnd, pretty ] = test_vs_gen_nw(nw, test)
+function [net_success, input_acts, hidden_acts,q_acts, fig_hnd, pretty, trial_types ] = test_vs_gen_nw(nw, test)
 
 
 pretty = false;
@@ -98,8 +98,10 @@ for h = 1:size(hidden_acts,3)
     p(h)=anova1(d_act(:,h), cue_col, 'off');
 end
 targ_displ = d_input(:,1:24);
-for t1 = 1:199
-    for t2=t1+1:200
+
+if 0
+for t1 = 1:numel(trial_types)-1
+    for t2=t1+1:numel(trial_types)
         if all(1-(targ_displ(t1,:)-targ_displ(t2,:)))
             % display the activity of the units in both conditions
             modul_index = mean(abs(squeeze(hidden_acts(t1,5:6,:))-squeeze(hidden_acts(t2,5:6,:))))./mean(abs(squeeze(hidden_acts(t1,5:6,:))+squeeze(hidden_acts(t2,5:6,:)))/2);
@@ -142,7 +144,7 @@ for t1 = 1:199
                     set(handles_tv(i),'Visible','off');
                 end
             end
-            keyboard;
+             keyboard;
             for i = 1:25
                 if (input_acts(t2,7,i) == 1 | input_acts(t2,4,i) )
                     set(handles_tv(i),'Visible', 'on');
@@ -150,7 +152,7 @@ for t1 = 1:199
                     set(handles_tv(i),'Visible','off');
                 end
             end
-            keyboard;
+%             keyboard;
             
             % display hidden units and Q val activity
             n_cond_plot = 2;
@@ -196,8 +198,48 @@ for t1 = 1:199
         end
     end
 end
-
-
-
+else 
+    fig_hnd = figure;
 end
+
+%% anova to get neurons sensitive to target position and cue color
+% average activity for cue*target position conditions 
+activ = zeros(3,7,10, nw.ny);
+for c = 1:3
+    for tp = 1:7
+        activ(c,tp,:,:) = mean(hidden_acts(find(floor(trial_types/1e3)==c*10+tp),1:10,:))  ;%hidden_acts(i,epoch,:)
+    end
+end
+ p = zeros(10,95,2);
+ for t=4:9
+     for n = 1:95
+         p(t,n,:) = anova2(activ(:,:,t,n),1,'off');
+         
+     end
+ end
+%% visu in multi dim space
+
+cl = colormap('hot');
+cl = cl(1:6:end,:);
+m = {'+', 'o', 's'};
+for t=1:9
+    r = squeeze(activ(:,:,t,:));
+    r2 = permute(r,[3 2 1]);
+    % X is n-by-p where p are the neurons and n the mesures
+    X = reshape(r2,[95,21]);
+    [COEFF,SCORE] = princomp(X');
+    p1 = X'*COEFF(:,1);
+    p2 = X'*COEFF(:,2);
+    figure; hold on ; title(['t = ' num2str(t)])
+    for c = 1:3
+        for tp = 1:7
+            plot(activ(c,tp,6,82),activ(c,tp,6,83), m{c}, 'MarkerEdgeColor',cl(tp,:),'MarkerSize',10 )
+            %plot(p1((c-1)*7+tp),p2((c-1)*7+tp), m{c}, 'MarkerEdgeColor',cl(tp,:),'MarkerSize',10 )
+        end
+    end
+end
+
+%%
+
+
 

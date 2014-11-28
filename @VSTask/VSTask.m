@@ -24,7 +24,7 @@ classdef VSTask < handle & Task
         trialSetExternal = false;
         keepTrialsforGeneralization = false; 
         
-        n_genTrials = 200;
+        
         
         fp_on = 0;      % used for plotting
         tar_on = 0;     % used for plotting
@@ -35,7 +35,7 @@ classdef VSTask < handle & Task
     properties
         train_trials = 0;
         generalization_trials = 0;
-        
+        n_genTrials = 200;
         
     end
     
@@ -168,6 +168,7 @@ classdef VSTask < handle & Task
                         if( obj.counter == obj.fix_dur)
                             obj.cur_reward = obj.cur_reward + obj.fix_reward; % second fixation reward
                             obj.resetCounter();
+                            obj.nwInput(obj.fp_input_index) = 0;
                             obj.nwInput = zeros(1,obj.n_col*obj.n_pos+1);
                             obj.STATE = obj.GOSTATE;
                         else
@@ -312,7 +313,11 @@ classdef VSTask < handle & Task
             end
             
             obj.cueInput = (obj.cue_col-1)*obj.n_pos + obj.cue_pos;
-            obj.intTrialType = trial_code;%(obj.cue_col-1)*obj.n_pos + obj.target_pos;
+            try 
+                obj.intTrialType = trial_code;
+            catch
+                obj.intTrialType =(obj.cue_col-1)*obj.n_pos + obj.target_pos;
+            end
             obj.trialTarget = obj.target_pos+obj.fix_action_index;
             
         end
@@ -348,7 +353,7 @@ classdef VSTask < handle & Task
         
         function setTrialsForGeneralisation(obj)
             % generate the indices of all possible trials
-            indices = zeros(1,obj.n_pos-1*obj.n_col*(obj.n_col-1)^(obj.n_pos-2));
+            indices = zeros(1,(obj.n_pos-1)*obj.n_col*(obj.n_col-1)^(obj.n_pos-2));
             ind=1;
             for c=1:obj.n_col
                 for p = 1:obj.n_pos-1
