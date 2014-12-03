@@ -1,6 +1,6 @@
 % Makes a plot like figure 2c.
 
-function [net_success, input_acts, hidden_acts,q_acts, fig_hnd, pretty, trial_types ] = test_vs_gen_nw(nw, test)
+function [net_success, input_acts, hidden_acts,q_acts, fig_hnd, pretty, trial_types, reward_trials ] = test_vs_gen_nw(nw, test)
 
 
 pretty = false;
@@ -14,6 +14,7 @@ hidden_acts = zeros(size(trial_types,1), 50,nw.ny);
 q_acts = zeros(size(trial_types,1), 50, nw.nz);
 
 trial_ends = zeros(size(trial_types,1),1);
+reward_trials = zeros(size(trial_types,1),1);
 
 % Number of tests
 seed = 1;
@@ -70,6 +71,9 @@ for i = 1:numel(trial_types)
             
             if (reward ~= 1.5)
                 net_success = false;
+                reward_trials(i)=0;
+            else
+                reward_trials(i)=1;
             end
             
             break;
