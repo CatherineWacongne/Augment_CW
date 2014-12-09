@@ -11,8 +11,8 @@ ProgramReady=0;
 seed = 11;
 
 % Test length:
-epochs = 50000;
-n_trials = 10000;
+epochs = 500000*2;
+n_trials = 100000*2;
 
 
 %% Parameters
@@ -22,8 +22,8 @@ beta   = 0.15;
 lambda = 0.40;
 
 % network hidden units
-ny_memory = 15;
-ny_normal = 80;
+ny_memory = 10;
+ny_normal = 30;
 
 % for experiments, fix the random generator:
 rnd_stream = RandStream('mt19937ar','Seed', seed);
@@ -39,17 +39,20 @@ set(a,'NextPlot','replace');
 DisplayStepSize=10000;                  % PR was 1000
 uicontrol('Style', 'edit', 'String', int2str(DisplayStepSize),...
     'Position', [20 30 50 30],'Callback',@edittext1_Callback);
+connection_update_frequency=1000;    % number of iterations between redrawing of connections
+connection_counter=1;               % number of iterations between redrawing of connections
+
 
 %% Network Settings:
 %
 n = FGNetwork();
 n.limit_traces = false;
-n.input_method = 'old';
+n.input_method = 'posnegcells';
 
 n.n_inputs = 201;%length(t.nwInput);
 n.ny_memory = ny_memory;
 n.ny_normal = ny_normal;
-n.nz =  12; %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+n.nz =  101; %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 n.controller = 'max-boltzmann';
 n.exploit_prob = .975;
 
@@ -67,20 +70,20 @@ n.beta = beta;
 n.init_network();
 
 %% Task init
-t = ColorTask();
+t = FGTask();
 
 
 % Reset all variables:
 trial_res = zeros(1, n_trials);
 
 states = zeros(epochs, 1);
-input_acts = ones(epochs, 25) * -100;
+input_acts = ones(epochs, 201) * -100;
 hidden_acts = ones(epochs, (ny_memory + ny_normal)) * -100;
-q_activations = ones(epochs, 12) * -100;
+q_activations = ones(epochs, 101) * -100;
 deltas = zeros(1,epochs);
 
 correct_perc = zeros(1,epochs);
-trial_choices = zeros(epochs,12);
+trial_choices = zeros(epochs,101);
 
 trial_types = ones(epochs,1) * -1;
 trial_ends = zeros(epochs, 1);
@@ -139,13 +142,13 @@ for i=1:epochs % an epoch is a point in time, a trial contains multiple epochs (
         if (mod(i,DisplayStepSize) == 0)
             figure(h);
             plot(a,1:epochs, rewards,'.',1:epochs,e_rewards,'r.',1:epochs,correct_perc,'k.');
-            if connection_counter>connection_update_frequency
-                connection_counter=0;
-                n.show_NetworkActivity(h2,a2,1);
-            else
-                n.show_NetworkActivity(h2,a2,0);
-            end
-            t.show_DisplayColor(h3,a3,n,new_input,reward,trialno);
+%             if connection_counter>connection_update_frequency
+%                 connection_counter=0;
+%                 n.show_NetworkActivity(h2,a2,1);
+%             else
+%                 n.show_NetworkActivity(h2,a2,0);
+%             end
+%             t.show_DisplayColor(h3,a3,n,new_input,reward,trialno);
             drawnow;
         end
     end
