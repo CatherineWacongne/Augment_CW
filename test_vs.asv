@@ -11,8 +11,8 @@ ProgramReady=0;
 seed = 11;
 
 % Test length:
-epochs = 50000*2;
-n_trials = 10000*2;
+epochs = 50000*5;
+n_trials = 10000*5;
 
 TrainCol=0;
 TrainPos = 0;
@@ -21,12 +21,12 @@ fb = 1;
 %% Parameters
 % learning
 gamma  = 0.9;
-beta   = 0.15;%15;
+beta   = 0.05;%15;
 lambda = 0.40;
 
 % network hidden units
-ny_memory = 15;
-ny_normal = 30;
+ny_memory = 20;
+ny_normal = 15;
 
 % for experiments, fix the random generator:
 rnd_stream = RandStream('mt19937ar','Seed', seed);
@@ -185,11 +185,9 @@ if TrainCol
 %                 correct_perc(i) = t.getPerformance();
                 correct_perc(i) = numel(find(trial_res==1))/trialno;
             else
-                correct_perc(i) = numel(find(trial_res(trialno-1000:trialno)>0))/numel(trial_res(trialno-1000:trialno));
+                correct_perc(i) = numel(find(trial_res3(trialno-1000:trialno)>0))/numel(trial_res3(trialno-1000:trialno));
             end
-            if correct_perc(i) > .9
-                break
-            end
+            
             if (trialend)
                 trial_ends(i) = 1;
                 % Check to see if we need to reset the trial statistics
@@ -209,7 +207,7 @@ if TrainCol
             %%% Update Task
             [new_input, reward, trialend] = t.doStep(action);
             connection_counter=connection_counter+1;      % number of iterations between redrawing of connections
-            if (mod(i,DisplayStepSize) == 0)
+            if 0%(mod(i,DisplayStepSize) == 0)
                 figure(h);
                 plot(a,1:epochs, rewards,'.',1:epochs,e_rewards,'r.',1:epochs,correct_perc,'k.');
                 if connection_counter>connection_update_frequency
@@ -459,13 +457,8 @@ for i=1:epochs % an epoch is a point in time, a trial contains multiple epochs (
         states3(i) = t3.STATE;
         trial_types3(i) = t3.intTrialType;
         rewards3(i) = reward3; % Reward for previous action
-%         correct_perc3(i) = t3.getPerformance();
-        if trialno<1001
-%                 correct_perc(i) = t.getPerformance();
-                correct_perc3(i) = numel(find(trial_res3==1))/trialno;
-            else
-                correct_perc3(i) = numel(find(trial_res3(trialno-1000:trialno)>0))/numel(trial_res3(trialno-1000:trialno));
-            end
+        correct_perc3(i) = t3.getPerformance();
+        
         if (trialend3)
             trial_ends3(i) = 1;
             % Check to see if we need to reset the trial statistics

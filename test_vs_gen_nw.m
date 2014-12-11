@@ -9,7 +9,7 @@ trial_types = unique(test);%[[ones(7,1);2*ones(7,1);3*ones(7,1)] repmat([2:8]', 
 
 
 states = zeros(size(trial_types,1), 50);
-input_acts = zeros(size(trial_types,1), 50, nw.n_inputs*3);
+input_acts = zeros(size(trial_types,1), 50, nw.n_inputs*4);
 hidden_acts = zeros(size(trial_types,1), 50,nw.ny);
 q_acts = zeros(size(trial_types,1), 50, nw.nz);
 
@@ -214,34 +214,34 @@ for c = 1:3
         activ(c,tp,:,:) = mean(hidden_acts(find(floor(trial_types/1e3)==c*10+tp),1:10,:))  ;%hidden_acts(i,epoch,:)
     end
 end
- p = zeros(10,95,2);
- for t=4:9
-     for n = 1:95
-         p(t,n,:) = anova2(activ(:,:,t,n),1,'off');
-         
-     end
- end
+%  p = zeros(10,95,2);
+%  for t=4:9
+%      for n = 1:95
+%          p(t,n,:) = anova2(activ(:,:,t,n),1,'off');
+%          
+%      end
+%  end
 %% visu in multi dim space
-
-cl = colormap('hot');
-cl = cl(1:6:end,:);
-m = {'+', 'o', 's'};
-for t=1:9
-    r = squeeze(activ(:,:,t,:));
-    r2 = permute(r,[3 2 1]);
-    % X is n-by-p where p are the neurons and n the mesures
-    X = reshape(r2,[95,21]);
-    [COEFF,SCORE] = princomp(X');
-    p1 = X'*COEFF(:,1);
-    p2 = X'*COEFF(:,2);
-    figure; hold on ; title(['t = ' num2str(t)])
-    for c = 1:3
-        for tp = 1:7
-            plot(activ(c,tp,6,82),activ(c,tp,6,83), m{c}, 'MarkerEdgeColor',cl(tp,:),'MarkerSize',10 )
-            %plot(p1((c-1)*7+tp),p2((c-1)*7+tp), m{c}, 'MarkerEdgeColor',cl(tp,:),'MarkerSize',10 )
-        end
-    end
-end
+% 
+% cl = colormap('hot');
+% cl = cl(1:6:end,:);
+% m = {'+', 'o', 's'};
+% for t=1:9
+%     r = squeeze(activ(:,:,t,:));
+%     r2 = permute(r,[3 2 1]);
+%     % X is n-by-p where p are the neurons and n the mesures
+%     X = reshape(r2,[95,21]);
+%     [COEFF,SCORE] = princomp(X');
+%     p1 = X'*COEFF(:,1);
+%     p2 = X'*COEFF(:,2);
+%     figure; hold on ; title(['t = ' num2str(t)])
+%     for c = 1:3
+%         for tp = 1:7
+%             plot(activ(c,tp,6,82),activ(c,tp,6,83), m{c}, 'MarkerEdgeColor',cl(tp,:),'MarkerSize',10 )
+%             %plot(p1((c-1)*7+tp),p2((c-1)*7+tp), m{c}, 'MarkerEdgeColor',cl(tp,:),'MarkerSize',10 )
+%         end
+%     end
+% end
 
 %%
 

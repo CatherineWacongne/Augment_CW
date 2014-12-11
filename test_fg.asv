@@ -11,8 +11,8 @@ ProgramReady=0;
 seed = 11;
 
 % Test length:
-epochs = 500000/20;
-n_trials = 100000/20;
+epochs = 500000*2;
+n_trials = 100000*2;
 
 
 %% Parameters
@@ -69,11 +69,6 @@ n.lambda = lambda;
 n.beta = beta;
 
 n.init_network();
-load('TrainedFG')
-n.gamma = gamma;
-n.lambda = lambda;
-n.beta = beta;
-n.exploit_prob = .975;
 
 %% Task init
 t = FGTask();

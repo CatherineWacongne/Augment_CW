@@ -169,7 +169,7 @@ classdef VSTask < handle & Task
                             obj.cur_reward = obj.cur_reward + obj.fix_reward; % second fixation reward
                             obj.resetCounter();
                             obj.nwInput(obj.fp_input_index) = 0;
-                            obj.nwInput = zeros(1,obj.n_col*obj.n_pos+1);
+%                             obj.nwInput = zeros(1,obj.n_col*obj.n_pos+1);
                             obj.STATE = obj.GOSTATE;
                         else
                             obj.incrCounter();
