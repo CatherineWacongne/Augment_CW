@@ -14,10 +14,10 @@ seed = 11;
 epochs = 50000*2;
 n_trials = 10000*2;
 
-TrainCol=0;
-TrainPos = 0;
+TrainCol=1;
+TrainPos = 1;
 generalize = 1;
-fb = 1;
+fb = 0;
 %% Parameters
 % learning
 gamma  = 0.9;
@@ -29,8 +29,8 @@ ny_memory = 15;
 ny_normal = 30;
 
 % for experiments, fix the random generator:
-rnd_stream = RandStream('mt19937ar','Seed', seed);
-RandStream.setDefaultStream(rnd_stream);
+% rnd_stream = RandStream('mt19937ar','Seed', seed);
+% RandStream.setDefaultStream(rnd_stream);
 
 %% Figures init
 scrsz = get(0,'ScreenSize');
@@ -279,8 +279,8 @@ if TrainPos
     load('TrainedCol')
     t2 = PosTask();
     
-    epochs = 50000*15;
-    n_trials = 10000*15;
+    epochs = 50000*2;
+    n_trials = 10000*2;
     
     % Reset all variables:
     % n_trials (estimated number of completed trials)
@@ -328,7 +328,13 @@ if TrainPos
             states2(i) = t2.STATE;
             trial_types2(i) = t2.intTrialType;
             rewards2(i) = reward2; % Reward for previous action
-            correct_perc2(i) = t2.getPerformance();
+            if trialno<1001
+%                 correct_perc(i) = t.getPerformance();
+                correct_perc2(i) = numel(find(trial_res2==1))/trialno;
+            else
+                correct_perc2(i) = numel(find(trial_res2(trialno-1000:trialno)>0))/numel(trial_res2(trialno-1000:trialno));
+            end
+%             correct_perc2(i) = t2.getPerformance();
             
             if (trialend2)
                 trial_ends2(i) = 1;
@@ -352,12 +358,12 @@ if TrainPos
             if (mod(i,DisplayStepSize) == 0)
                 figure(h);
                 plot(a,1:epochs, rewards2,'.',1:epochs,e_rewards2,'r.',1:epochs,correct_perc2,'k.');
-                if connection_counter2>connection_update_frequency
-                    connection_counter2=0;
-                    n.show_NetworkActivity(h2,a2,1);
-                else
-                    n.show_NetworkActivity(h2,a2,0);
-                end
+%                 if connection_counter2>connection_update_frequency
+%                     connection_counter2=0;
+%                     n.show_NetworkActivity(h2,a2,1);
+%                 else
+%                     n.show_NetworkActivity(h2,a2,0);
+%                 end
                 %t2.show_DisplayColor(h3,a3,n,new_input,reward,trialno);
                 drawnow;
             end
@@ -488,6 +494,7 @@ for i=1:epochs % an epoch is a point in time, a trial contains multiple epochs (
         if (mod(i,DisplayStepSize) == 0)
             figure(h);
             plot(a,1:epochs, rewards3,'.',1:epochs,e_rewards3,'r.',1:epochs,correct_perc3,'k.');
+%             keyboard
             %             if connection_counter3>connection_update_frequency
             %                 connection_counter3=0;
             %                 n.show_NetworkActivity(h2,a2,1);
@@ -503,4 +510,4 @@ end % For epoch
 convergence_res3 = [converged3, c_epoch3]
 
 save('TrainedColPosVS_gen', 'n')
-save('141211_resultsComplete_gen_fb.mat', 'n', 't3', 'gamma', 'beta', 'lambda', 'ny_memory', 'ny_normal', 'trial_types3','rewards3')
+save('141216_resultsComplete_gen_nofb.mat', 'n', 't3', 'gamma', 'beta', 'lambda', 'ny_memory', 'ny_normal', 'trial_types3','rewards3')

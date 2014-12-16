@@ -18,6 +18,7 @@ end
 obj.Y_ma_total = (obj.mem_decays .* obj.Y_ma_total) + obj.Y_ma_current;
 
 % Transform:
+
 mem_activations =  obj.hd_transform_memory(obj.Y_ma_total);
 
 end

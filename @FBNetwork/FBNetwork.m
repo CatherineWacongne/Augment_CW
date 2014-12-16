@@ -111,6 +111,7 @@ classdef FBNetwork < handle
     
     mem_input; % Stores inputs calculated for memory hiddens 
                % (without sustained inputs).
+    sum_t_xd;
     
     % Determines the input to the memory neurons
     input_method = 'posnegcells'
@@ -175,7 +176,7 @@ classdef FBNetwork < handle
       
       % TECHNICALLY, this is not a trace...
       obj.Y_ma_total = zeros(1, obj.ny_memory);
-      
+      obj.sum_t_xd = zeros(1, obj.n_inputs*2);
       obj.prev_input = zeros(1,obj.n_inputs);
       obj.previous_qa = 0;
             
@@ -215,6 +216,7 @@ classdef FBNetwork < handle
             
       obj.Y_ma_total = zeros(1, obj.ny_memory);
       obj.Y_ma_current = zeros(1, obj.ny_memory);
+      obj.sum_t_xd = zeros(1, obj.n_inputs*2);
       
       % Set the hidden unit transformations:
       obj.setInstantTransform(obj.instant_transform_fn, obj.instant_transform_tau);
@@ -523,15 +525,15 @@ classdef FBNetwork < handle
         (rand(obj.ny + obj.bias_hidden, obj.nz))- 0.5*obj.yz_weight_range;
     
       % Set weights for Hidden -> Modul Input  
-      obj.weights_yx = obj.yx_weight_range* ...
-          (rand(obj.ny + obj.bias_hidden, obj.nx))- 0.5*obj.yx_weight_range;
+      obj.weights_yx = 1*(obj.yx_weight_range* ...
+          (rand(obj.ny + obj.bias_hidden, obj.nx))- 0.5*obj.yx_weight_range);
       
       % For visualization: put all weights in input->hidden that are not
       % used to 0;
       if (strcmp(obj.input_method, 'modulposneg'))
           obj.weights_xy(((obj.n_inputs*2 + obj.bias_input)+1):end, 1:obj.ny_normal) = 0;
           obj.weights_xy(1:(obj.n_inputs*2 + obj.bias_input), (obj.ny_normal+1):end) = 0;
-          obj.weights_yx(obj.bias_hidden+1:obj.ny_normal+obj.bias_hidden,:) = 0;
+          obj.weights_yx(1:obj.ny_normal+obj.bias_hidden,:) = 0;
           obj.weights_yx([obj.bias_hidden obj.bias_hidden+obj.ny_normal+1:end],[1:obj.n_inputs obj.n_inputs*2+1:end]) = 0;
       else
           obj.weights_xy(((obj.n_inputs + obj.bias_input)+1):end, 1:obj.ny_normal) = 0; 

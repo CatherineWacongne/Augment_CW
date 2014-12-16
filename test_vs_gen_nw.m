@@ -9,7 +9,7 @@ trial_types = unique(test);%[[ones(7,1);2*ones(7,1);3*ones(7,1)] repmat([2:8]', 
 
 
 states = zeros(size(trial_types,1), 50);
-input_acts = zeros(size(trial_types,1), 50, nw.n_inputs*4);
+input_acts = zeros(size(trial_types,1), 50, nw.n_inputs*3);
 hidden_acts = zeros(size(trial_types,1), 50,nw.ny);
 q_acts = zeros(size(trial_types,1), 50, nw.nz);
 
