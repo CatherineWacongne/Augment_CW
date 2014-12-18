@@ -17,7 +17,7 @@ n_trials = 10000*2;
 TrainCol=1;
 TrainPos = 1;
 generalize = 1;
-fb = 0;
+fb = 1;
 %% Parameters
 % learning
 gamma  = 0.9;
@@ -510,4 +510,4 @@ end % For epoch
 convergence_res3 = [converged3, c_epoch3]
 
 save('TrainedColPosVS_gen', 'n')
-save('141216_resultsComplete_gen_nofb.mat', 'n', 't3', 'gamma', 'beta', 'lambda', 'ny_memory', 'ny_normal', 'trial_types3','rewards3')
+save('141217_resultsComplete_gen_fb.mat', 'n', 't3', 'gamma', 'beta', 'lambda', 'ny_memory', 'ny_normal', 'trial_types3','rewards3')

@@ -15,4 +15,3 @@ modul_transformed = obj.hd_transform_normal(modul_input);
 obj.X = [obj.current_input modul_transformed d_pos abs(d_neg)];
 
 end
-
