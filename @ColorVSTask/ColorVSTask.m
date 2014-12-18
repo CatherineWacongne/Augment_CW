@@ -34,6 +34,7 @@ classdef ColorVSTask < handle & Task
         train_trials = 0;
         generalization_trials = 0;
         n_genTrials = 100000;
+        Color_only = 1;
         
     end
     
@@ -150,8 +151,9 @@ classdef ColorVSTask < handle & Task
                             obj.resetCounter();
                             
                             obj.nwInput = zeros(1,obj.n_col*obj.n_pos+1);  % turns everything off.
-                            
-                            obj.STATE = obj.GOSTATE;
+                           
+                                obj.STATE = obj.GOSTATE;
+                           
                         else
                             obj.incrCounter();
                         end
@@ -162,16 +164,20 @@ classdef ColorVSTask < handle & Task
                         obj.stateReset();
                     else
                         if( obj.counter == obj.fix_dur)
-                            obj.cur_reward = obj.cur_reward + obj.fix_reward; % second small reward for color task
+                            obj.cur_reward = obj.cur_reward + 3*obj.fix_reward; % second small reward for color task
                             disp('Color Reward !')
                             obj.resetCounter();
-                            obj.nwInput(obj.fp_input_index) = 0;
+                            obj.nwInput = zeros(1,obj.n_col*obj.n_pos+1);
                             for d = 1:8
                                 if obj.display_col(d)>0
                                     obj.nwInput((obj.display_col(d)-1)*obj.n_pos + d)=1; % bring the targets
                                 end
                             end 
-                            obj.STATE = obj.GOSTATE;
+                            if obj.Color_only
+                                obj.stateReset();
+                            else 
+                                obj.STATE = obj.GOSTATE;
+                            end
                         else
                             obj.incrCounter();
                         end

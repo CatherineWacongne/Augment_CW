@@ -24,7 +24,7 @@ lambda = 0.40;
 
 % network hidden units
 ny_memory = 15;
-ny_normal = 50;
+ny_normal = 20;
 
 % for experiments, fix the random generator:
 % rnd_stream = RandStream('mt19937ar','Seed', seed);
@@ -127,13 +127,20 @@ end
 %% Task Settings:
 
 
-    
-    t = ColorVSTask();
-    t.n_genTrials = 1e5;
-    t.setTrialsForGeneralisation;
-    
-    % Reset all variables:
-    % n_trials (estimated number of completed trials)
+
+t = ColorVSTask();
+t.n_genTrials = 1e5;
+t.setTrialsForGeneralisation;
+
+% Reset all variables:
+% n_trials (estimated number of completed trials)
+
+for color_on = [1 0]
+    % Test length:
+    epochs = 50000*60-50000*55*color_on;
+    n_trials = 10000*70-10000*60*color_on;
+
+    t.Color_only = color_on;
     trial_res = zeros(1, n_trials);
     
     states = zeros(epochs, 1);
@@ -181,7 +188,7 @@ end
             trial_types(i) = t.intTrialType;
             rewards(i) = reward; % Reward for previous action
             if trialno<1001
-%                 correct_perc(i) = t.getPerformance();
+                %                 correct_perc(i) = t.getPerformance();
                 correct_perc(i) = numel(find(trial_res==1))/trialno;
             else
                 correct_perc(i) = numel(find(trial_res(trialno-1000:trialno)>0))/numel(trial_res(trialno-1000:trialno));
@@ -210,14 +217,14 @@ end
             connection_counter=connection_counter+1;      % number of iterations between redrawing of connections
             if (mod(i,DisplayStepSize) == 0)
                 figure(h);
-                plot(a,1:epochs, rewards,'.',1:epochs,e_rewards,'r.',1:epochs,correct_perc,'k.');
+                plot(a,1:epochs, rewards,'.',1:epochs,e_rewards,'r.',1:epochs,correct_perc,'k.');ylim([-1.2 2.5])
                 if connection_counter>connection_update_frequency
                     connection_counter=0;
                     n.show_NetworkActivity(h2,a2,1);
                 else
                     n.show_NetworkActivity(h2,a2,0);
                 end
-%                 t.show_DisplayColor(h3,a3,n,new_input,reward,trialno);
+                %                 t.show_DisplayColor(h3,a3,n,new_input,reward,trialno);
                 drawnow;
             end
         end
@@ -227,5 +234,6 @@ end
     % Now, check whether this run converged (last 10% at least):
     [converged, c_epoch]  = calcConv(trial_res, 0.1 )
     convergence_res = [converged, c_epoch]
+end
 
 save('141217_resultsColorVS_gen_fb.mat', 'n', 't', 'gamma', 'beta', 'lambda', 'ny_memory', 'ny_normal', 'trial_types','rewards')

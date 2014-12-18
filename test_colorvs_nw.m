@@ -37,6 +37,7 @@ for i = 1:numel(trial_types)
     
     % Task Settings:
     t = ColorVSTask();
+    t.Color_only = 0;
     
     
     %t.setTrialType(trial_types(i,1), trial_types(i,2));
