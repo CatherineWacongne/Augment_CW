@@ -1,7 +1,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Test run of Visual Search Task
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-close all; clear all; clc
+close all; clear all;clc
 clear;
 global DisplayStepSize;
 global ProgramReady;
@@ -23,8 +23,8 @@ beta   = 0.15;%15;
 lambda = 0.5;%.20;
 
 % network hidden units
-ny_memory = 40;
-ny_normal = 40;
+ny_memory = 25;
+ny_normal = 25;
 
 % for experiments, fix the random generator:
 % rnd_stream = RandStream('mt19937ar','Seed', seed);
@@ -80,7 +80,7 @@ if fb
     n.ny_normal = ny_normal;
     n.nz =  12; %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     n.controller = 'max-boltzmann';
-    n.exploit_prob = .95;
+    n.exploit_prob = .975;
     
     n.setInstantTransform('shifted-sigmoid',2.5);
     n.setMemoryTransform('shifted-sigmoid',2.5);
@@ -169,7 +169,6 @@ for color_on = [0]
 %     w51 = zeros(n.ny_normal,epochs);
 %     w26 = zeros(n.ny_normal,epochs);
     res_trial_stats = false;
-    tic = 1;
     
     for i=1:epochs % an epoch is a point in time, a trial contains multiple epochs (defined by the CAPITALSTATES properties of the task)
         if ~ProgramReady
@@ -215,15 +214,15 @@ for color_on = [0]
                 % Total number of trials in this run:
                 trialno = trialno + 1;
                 b = find(trial_ends==1);
-                if t.reward_vs  && ~t.showdistractors && (i-tic)>1000
-                    if correct_perc(i) > .85
+                if t.reward_vs  && ~t.showdistractors
+                    if correct_perc(i) > .9
                         t.showdistractors = 1;
                         keyboard;
                     end
 
                 end
                 if numel(b)>1001 && t.reward_vs == 0
-                    if  numel(find(rewards(b(max(1,trialno-10000):trialno-1)-1)>=0.5))>8400
+                    if  numel(find(rewards(b(max(1,trialno-10000):trialno-1)-1)>=0.5))>9400
                         t.reward_vs = 1;
                         tic =i;
                         keyboard

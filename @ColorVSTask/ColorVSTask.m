@@ -35,7 +35,8 @@ classdef ColorVSTask < handle & Task
         generalization_trials = 0;
         n_genTrials = 100000;
         Color_only = 1;
-        
+        reward_vs = 0;
+        showdistractors = 0;
     end
     
     methods
@@ -170,7 +171,13 @@ classdef ColorVSTask < handle & Task
                             obj.nwInput = zeros(1,obj.n_col*obj.n_pos+1);
                             for d = 1:8
                                 if obj.display_col(d)>0
-                                    obj.nwInput((obj.display_col(d)-1)*obj.n_pos + d)=1; % bring the targets
+                                    if obj.showdistractors
+                                        obj.nwInput((obj.display_col(d)-1)*obj.n_pos + d)=1; % bring the targets
+                                    else
+                                        if obj.display_col(d)==obj.cue_col
+                                            obj.nwInput((obj.display_col(d)-1)*obj.n_pos + d)=1; 
+                                        end
+                                    end
                                 end
                             end 
                             if obj.Color_only
@@ -186,7 +193,15 @@ classdef ColorVSTask < handle & Task
                     %disp('GO')
                     % Wait until fixation is broken
                     if (obj.counter <= obj.max_dur) % Trial expired?
-                        if (~all(networkAction == fixation))  % Broke Fixation
+                        if obj.reward_vs ==0
+                            
+%                             if find(networkAction,1)>4
+%                                 obj.cur_reward = obj.cur_reward + obj.fin_reward;
+%                                 disp('Other Resp Reward!')
+%                             end
+                            obj.stateReset();
+                            
+                        elseif (~all(networkAction == fixation))  % Broke Fixation
                             
                             if (all(networkAction(obj.trialTarget) == 1) ) % Correct:
                                 disp('VS Reward!')

@@ -38,7 +38,7 @@ for i = 1:numel(trial_types)
     % Task Settings:
     t = ColorVSTask();
     t.Color_only = 0;
-    
+    t.reward_vs = 1;
     
     %t.setTrialType(trial_types(i,1), trial_types(i,2));
     t.setTrialTypeGen(trial_types(i))
@@ -68,7 +68,7 @@ for i = 1:numel(trial_types)
             t.stateReset();
             trial_ends(i) = epoch;
             
-            if (reward ~= 1.5)
+            if (reward <= 0.7)
                 net_success = false;
                 reward_trials(i)=0;
             else

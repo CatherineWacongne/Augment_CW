@@ -123,13 +123,13 @@ function show_NetworkActivity(obj,h2,a2,draw_connections)
   
   % connections
   if draw_connections
-      for Ori=1:obj.nx+1            % draw connections from layer 1 to layer 2
+      for Ori=1:obj.nx %+1            % draw connections from layer 1 to layer 2
           for Term=1:obj.ny
               AStrength=abs(obj.weights_xy(Ori,Term));
               LWidth=AStrength*2;
               if AStrength>0.25
                   if obj.weights_xy(Ori,Term)>0
-                      PCol=[0 1 1];
+                      PCol=[0 0 1];
                   else
                       PCol=[1 0 0];
                   end
@@ -150,7 +150,7 @@ function show_NetworkActivity(obj,h2,a2,draw_connections)
               LWidth=AStrength*2;
               if AStrength>0.25
                   if obj.weights_yz(Ori,Term)>0
-                      PCol=[0 1 1];
+                      PCol=[0 0 1];
                   else
                       PCol=[1 0 0];
                   end

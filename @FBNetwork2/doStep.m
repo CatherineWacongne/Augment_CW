@@ -85,6 +85,9 @@ obj.fdelta = obj.delta;
 
 % Input to hidden:
 obj.weights_xy = obj.weights_xy + obj.beta * obj.fdelta * obj.wxy_traces_now;
+% if max(obj.weights_xy(51,:))>5
+%     keyboard;
+% end
 
 % Hidden to output:
 obj.weights_yz = obj.weights_yz + obj.beta * obj.fdelta * obj.wyz_traces;

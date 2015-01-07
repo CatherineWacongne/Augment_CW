@@ -59,7 +59,7 @@ classdef FBNetwork2 < handle
     
     % Hidden transformation functions:
     mem_transform_fn = 'shifted-sigmoid';
-    mem_transform_tau = 2.5; % sets shift
+    mem_transform_tau = 1; % sets shift
     hd_transform_normal = '';
     hd_transform_normal_deriv = '';
     
@@ -234,6 +234,7 @@ classdef FBNetwork2 < handle
       
       % Mark network as ready for execution:
       obj.network_changed  = false;
+      obj.limit_traces = true;
     end
     
     % Set the controller that converts q-values into action probabilities
