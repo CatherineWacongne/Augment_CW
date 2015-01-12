@@ -11,8 +11,8 @@ ProgramReady=0;
 seed = 11;
 
 % Test length:
-epochs = 50000*20;
-n_trials = 10000*30;
+epochs = 50000;%*20;
+n_trials = 10000;%*30;
 
 generalize = 1;
 fb = 1;
@@ -23,8 +23,8 @@ beta   = 0.15;%15;
 lambda = 0.5;%.20;
 
 % network hidden units
-ny_memory = 40;
-ny_normal = 40;
+ny_memory = 25;
+ny_normal = 25;
 
 % for experiments, fix the random generator:
 % rnd_stream = RandStream('mt19937ar','Seed', seed);
@@ -80,7 +80,7 @@ if fb
     n.ny_normal = ny_normal;
     n.nz =  12; %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     n.controller = 'max-boltzmann';
-    n.exploit_prob = .95;
+    n.exploit_prob = .975;
     
     n.setInstantTransform('shifted-sigmoid',2.5);
     n.setMemoryTransform('shifted-sigmoid',2.5);
@@ -137,8 +137,8 @@ t.setTrialsForGeneralisation;
 
 for color_on = [0]
     % Test length:
-    epochs = 50000*60-50000*55*color_on;
-    n_trials = 10000*70-10000*60*color_on;
+    epochs = 50000*6;%0-50000*55*color_on;
+    n_trials = 10000*7;%0-10000*60*color_on;
 
     t.Color_only = color_on;
     trial_res = zeros(1, n_trials);
@@ -170,7 +170,8 @@ for color_on = [0]
 %     w26 = zeros(n.ny_normal,epochs);
     res_trial_stats = false;
     tic = 1;
-    
+    t.showdistractors = 1;
+    t.reward_vs = 1;
     for i=1:epochs % an epoch is a point in time, a trial contains multiple epochs (defined by the CAPITALSTATES properties of the task)
         if ~ProgramReady
             
@@ -215,18 +216,19 @@ for color_on = [0]
                 % Total number of trials in this run:
                 trialno = trialno + 1;
                 b = find(trial_ends==1);
-                if t.reward_vs  && ~t.showdistractors && (i-tic)>1000
-                    if correct_perc(i) > .85
-                        t.showdistractors = 1;
-                        keyboard;
-                    end
+%                 if t.reward_vs  && ~t.showdistractors && (i-tic)>1000
+%                     if correct_perc(i) > .92
+%                         break
+%                         t.showdistractors = 1;
+%                         keyboard;
+%                     end
 
-                end
+%                 end
                 if numel(b)>1001 && t.reward_vs == 0
                     if  numel(find(rewards(b(max(1,trialno-10000):trialno-1)-1)>=0.5))>8400
                         t.reward_vs = 1;
-                        tic =i;
-                        keyboard
+                        tic =trialno;
+%                         keyboard
                     end
                 end
                 
@@ -256,4 +258,4 @@ for color_on = [0]
     convergence_res = [converged, c_epoch]
 end
 
-save('141217_resultsColorVS_gen_fb.mat', 'n', 't', 'gamma', 'beta', 'lambda', 'ny_memory', 'ny_normal', 'trial_types','rewards')
+save('150108_resultsColorVS_gen_fb.mat', 'n', 't', 'gamma', 'beta', 'lambda', 'ny_memory', 'ny_normal', 'trial_types','rewards')
