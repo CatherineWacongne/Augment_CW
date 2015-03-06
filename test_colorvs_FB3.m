@@ -1,7 +1,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Test run of Visual Search Task
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-close all; clear all;clc
+close all; clear all; clc
 clear;
 global DisplayStepSize;
 global ProgramReady;
@@ -11,16 +11,16 @@ ProgramReady=0;
 seed = 11;
 
 % Test length:
-epochs = 50000*20;
-n_trials = 10000*30;
+epochs = 50000;%*20;
+n_trials = 10000;%*30;
 
 generalize = 1;
 fb = 1;
 %% Parameters
 % learning
 gamma  = 0.9;
-beta   = 0.15;%15;
-lambda = 0.5;%.20;
+beta   = 0.1;%15;
+lambda = 0.2;%.20;
 
 % network hidden units
 ny_memory = 25;
@@ -71,7 +71,7 @@ set(a3,'NextPlot','replace');
 %% Network Settings:
 %
 if fb
-    n = FBNetwork2();
+    n = FBNetwork3();
     n.limit_traces = false;
     n.input_method = 'modulcells';
     
@@ -79,15 +79,21 @@ if fb
     
     n.ny_normal = ny_normal;
     n.nz =  12; %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    n.nzs = n.nz;
     n.controller = 'max-boltzmann';
     n.exploit_prob = .975;
     
+%     n.instant_transform_fn = 'rectified-linear' ;
+    n.delta_limit = 2;
+    n.limit_delta = 1;
+%     n.limit_traces = 1;
+    
     n.setInstantTransform('shifted-sigmoid',2.5);
     n.setMemoryTransform('shifted-sigmoid',2.5);
-    
+%     n.setInstantTransform() 
     
     n.input_noise = false;
-    
+%     n.constrain_q_acts = 1;
     
     n.gamma = gamma;
     n.lambda = lambda;
@@ -137,8 +143,8 @@ t.setTrialsForGeneralisation;
 
 for color_on = [0]
     % Test length:
-    epochs = 50000*60-50000*55*color_on;
-    n_trials = 10000*70-10000*60*color_on;
+    epochs = 50000*22;%0-50000*55*color_on;
+    n_trials = 10000*24;%0-10000*60*color_on;
 
     t.Color_only = color_on;
     trial_res = zeros(1, n_trials);
@@ -146,7 +152,7 @@ for color_on = [0]
     states = zeros(epochs, 1);
     input_acts = ones(epochs, 25) * -100;
     hidden_acts = ones(epochs, ny_normal*2) * -100;
-    q_activations = ones(epochs, 12) * -100;
+    q_activations = ones(epochs, n.nz+n.nzs) * -100;
     deltas = zeros(1,epochs);
     
     correct_perc = zeros(1,epochs);
@@ -166,16 +172,20 @@ for color_on = [0]
     e_rewards = zeros(1,epochs);
     
     trialno = 1;
-%     w51 = zeros(n.ny_normal,epochs);
-%     w26 = zeros(n.ny_normal,epochs);
+    w51 = zeros(n.ny_normal,epochs);
+    w26 = zeros(n.ny_normal,epochs);
+    wy15 = zeros(n.nzs+1,epochs);
     res_trial_stats = false;
-    
+    tic = 1;
+    t.showdistractors = 1;
+    t.reward_vs = 0;
+    t.reward_color = 1;
     for i=1:epochs % an epoch is a point in time, a trial contains multiple epochs (defined by the CAPITALSTATES properties of the task)
         if ~ProgramReady
             
             %%% Update Network
             [action] = n.doStep(new_input,reward, trialend);
-            
+%             n.prev_action
             % Network values:
             input_acts(i,:) = n.noiseless_input;
             hidden_acts(i,:) =  n.Y';
@@ -188,8 +198,9 @@ for color_on = [0]
             states(i) = t.STATE;
             trial_types(i) = t.intTrialType;
             rewards(i) = reward; % Reward for previous action
-%             w51(:,i) = n.weights_xy(51,1:n.ny_normal)';
-%             w26(:,i) = n.weights_xy(26,1:n.ny_normal)';
+            w51(:,i) = n.weights_xy(51,1:n.ny_normal)';
+            w26(:,i) = n.weights_xy(26,1:n.ny_normal)';
+            wy15(:,i)= n.weights_zzs(:,4);
             if trialno<1001
                 %                 correct_perc(i) = t.getPerformance();
                 correct_perc(i) = numel(find(trial_res==1))/trialno;
@@ -214,24 +225,32 @@ for color_on = [0]
                 % Total number of trials in this run:
                 trialno = trialno + 1;
                 b = find(trial_ends==1);
-                if t.reward_vs  && ~t.showdistractors
-                    if correct_perc(i) > .9
-                        t.showdistractors = 1;
-                        keyboard;
+                if t.reward_vs   && (trialno-tic)>10000 && t.reward_color
+                    if correct_perc(i-1) > .9
+                       
+                        t.reward_color = 0;
+                        beta   = 0.01;
+                        tac =trialno;
+%                         keyboard;
                     end
 
                 end
                 if numel(b)>1001 && t.reward_vs == 0
-                    if  numel(find(rewards(b(max(1,trialno-10000):trialno-1)-1)>=0.5))>9400
+                    if  numel(find(rewards(b(max(1,trialno-10000):trialno-1)-1)>=0.5))>8500
                         t.reward_vs = 1;
-                        tic =i;
-                        keyboard
+                         beta   = 0.05;
+                        
+                        tic =trialno;
+%                         keyboardn.
                     end
                 end
                 
             end
             %%% Update Task
             [new_input, reward, trialend] = t.doStep(action);
+             if reward>0
+                r = 1;
+            end
             connection_counter=connection_counter+1;      % number of iterations between redrawing of connections
             if (mod(i,DisplayStepSize) == 0)
                 figure(h);
@@ -255,4 +274,4 @@ for color_on = [0]
     convergence_res = [converged, c_epoch]
 end
 
-save('141217_resultsColorVS_gen_fb.mat', 'n', 't', 'gamma', 'beta', 'lambda', 'ny_memory', 'ny_normal', 'trial_types','rewards')
+save('150306_resultsColorVS_gen_fb3.mat', 'n', 't', 'gamma', 'beta', 'lambda', 'ny_memory', 'ny_normal', 'trial_types','rewards')

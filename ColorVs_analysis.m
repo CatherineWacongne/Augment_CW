@@ -1,6 +1,8 @@
-load 150108_resultsColorVS_gen_fb.mat
-PngDir = 'C:\Users\wacongne\Documents\PostDoc\Modeling\AuGMEnT_Matlab\Results\150108\';
-test =  t.generalization_trials(1:1000);
+% load 150108_resultsColorVS_gen_fb.mat
+% load('150112_resultsColorVS_gen_fb.mat')
+PngDir = 'C:\Users\wacongne\Documents\PostDoc\Modeling\AuGMEnT_Matlab\Results\190208\';
+n_trials = 2000;
+test =  t.generalization_trials(1:n_trials);
 trial_types = unique(test);
 [net_success, input_acts, hidden_acts,q_acts, fig_hnd, pretty, trial_types, reward_trials ] = test_colorvs_nw(n, test);
 
@@ -16,11 +18,11 @@ Gcol =  reshape( ones(8,1)*(1:3),[1,24]);
 P_anovPos = zeros(1,25);
 P_anovCol = zeros(1,25);
 for ny = 1:25
-     P_anovPos(ny)= anova1(W_xreord(26:49,ny),Gpos, 'off');
-     P_anovCol(ny)= anova1(W_xreord(1:24,ny),Gcol, 'off');
-     if P_anovPos(ny)<0.05
+    P_anovPos(ny)= anova1(W_xreord(26:49,ny),Gpos, 'off');
+    P_anovCol(ny)= anova1(W_xreord(1:24,ny),Gcol, 'off');
+    if P_anovPos(ny)<0.05
         [~,pos_select(ny)] = max(W_modul(:,ny));
-     end
+    end
     
 end
 yreord = [find(pos_select==0) find(pos_select==1), find(pos_select==2), find(pos_select==3) find(pos_select==4) find(pos_select==5) find(pos_select==6) find(pos_select==7) find(pos_select==8)];
@@ -29,12 +31,12 @@ figure;imagesc(W_xyreord, [-2 2]); title({'Synaptic Weights between the input un
 ylabel('Input Units')
 set(gca,'YTickMode','auto','YTickLabel', {'NormalUnits', 'FP', 'ModulUnits(reordered by position)', 'FP(modul)'}, 'YTick', [ 12 25 37 50] ); xlabel('Hidden Units'); colorbar
 set(gcf,'PaperPositionMode','auto')
-print(gcf,'-dpng',[PngDir 'Wxy_TargPosSensitivity.png']) 
+% print(gcf,'-dpng',[PngDir 'Wxy_TargPosSensitivity.png'])
 
 figure; imagesc([log10(P_anovPos(yreord));log10(P_anovCol(yreord))])
 figure; imagesc([P_anovPos(yreord)<0.01;P_anovCol(yreord)<0.01])
 figure; bar([numel(find(P_anovPos<0.01&P_anovCol<0.01)), numel(find(P_anovPos>=0.01&P_anovCol<0.01)),numel(find(P_anovPos<0.01&P_anovCol>=0.01)) ])
-set(gca,'XTickMode','auto','XTickLabel', {'Color & Position', 'Color only', 'Position only'}, 'XTick', [ 1 2 3] ); 
+set(gca,'XTickMode','auto','XTickLabel', {'Color & Position', 'Color only', 'Position only'}, 'XTick', [ 1 2 3] );
 ylabel('number of hidden units selective ')
 
 %% hidden unit activity during cue presentation
@@ -48,7 +50,7 @@ P_anovCol = zeros(1,25);
 % %      if P_anovPos(ny)<0.05
 % %         [~,pos_select(ny)] = max(W_modul(:,ny));
 % %      end
-%     
+%
 % end
 Data =  zeros(3,8,25);
 for col = 1:3
@@ -68,7 +70,7 @@ figure; imagesc(n.weights_yz(I+1,:)); title({'Synaptic Weights between hidden un
 set(gca,'XTickMode','auto','XTickLabel', {'R', 'G', 'B', 'FP', 'Positions'}, 'XTick', [ 1 2 3 4 8] ); xlabel('Q Units'); colorbar
 ylabel('Hidden Units')
 set(gcf,'PaperPositionMode','auto')
-print(gcf,'-dpng',[PngDir 'Wyz_CueColSensitivity.png']) 
+% print(gcf,'-dpng',[PngDir 'Wyz_CueColSensitivity.png'])
 
 Gpostarg = floor(trial_types/1e7)-100*Gcol-10*Gposcue;
 Data2 =  zeros(3,8,25);
@@ -81,11 +83,11 @@ end
 for ny = 1:25
     [P] = anova2(squeeze( Data2(:,:,ny)),1,'off');
     P_anovPos(ny) = P(1);
-%     P_anovCol(ny) = P(2);
+    %     P_anovCol(ny) = P(2);
 end
 figure; imagesc([P_anovPos<0.01;P_anovCol<0.01])
 
-%% 
+%%
 figure; subplot(1,2,1);imagesc(squeeze(input_acts(20,1:6,:)), [-.5 .5]);subplot(1,2,2);imagesc(squeeze(hidden_acts(20,1:6,1:25)), [-.5 .5]);
 figure; subplot(1,2,1);imagesc(squeeze(input_acts(22,1:6,:)), [-.5 .5]);subplot(1,2,2);imagesc(squeeze(hidden_acts(22,1:6,1:25)), [-.5 .5]);
 figure;imagesc(squeeze(hidden_acts(22,1:6,1:25))- squeeze(hidden_acts(20,1:6,1:25)), [-.5 .5]);
@@ -103,66 +105,66 @@ figure; plot(f2,x2,y2); hold on ; plot(f1,'g', x1,y1, 'k.');
 
 
 figure;imagesc(squeeze(mean(squeeze(hidden_acts(:,1:6,1:25)))));
-ndistr = zeros(1,1000);
-for t=1:1000
+ndistr = zeros(1,n_trials);
+for t=1:n_trials
     a = num2str(mod(trial_types(t),1e7) );
     ndistr(t) = numel(strfind(a,'1'));
 end
 figure;
 for neur = 1:25;
-activ = zeros(1,8);
-for n = 1:8
-    activ(n) = squeeze(mean(hidden_acts(find(ndistr==(n-1)),5,neur)));
-end
-
-subplot(5,5,neur);bar(activ(8:-1:1)); ylim([0 1]); set(gca,'XTickMode','auto','XTickLabel', 0:7, 'XTick',1:8 );
-if neur ==3
-    title('hidden units activity in function of the number of distractors')
-end
+    activ = zeros(1,8);
+    for d = 1:8
+        activ(d) = squeeze(mean(hidden_acts(find(ndistr==(d-1)),5,neur)));
+    end
+    
+    subplot(5,5,neur);bar(activ(8:-1:1)); ylim([0 1]); set(gca,'XTickMode','auto','XTickLabel', 0:7, 'XTick',1:8 );
+    if neur ==3
+        title('hidden units activity in function of the number of distractors')
+    end
 end
 
 
 
 figure;
 for neur = 1:12;
-activ = zeros(1,8);
-for n = 1:8
-    activ(n) = squeeze(mean(q_acts(find(ndistr==(n-1)),5,neur)));
-end
-
-subplot(3,4,neur);bar(activ(8:-1:1)); ylim([-1.5 1]);set(gca,'XTickMode','auto','XTickLabel', 0:7, 'XTick',1:8 );
-if neur ==2
-    title('           Q units activity in function of the number of distractors')
-end
-
+    activ = zeros(1,8);
+    for n1 = 1:8
+        activ(n1) = squeeze(mean(q_acts(find(ndistr==(n1-1)),5,neur)));
+    end
+    
+    subplot(3,4,neur);bar(activ(8:-1:1)); ylim([-1.5 1]);set(gca,'XTickMode','auto','XTickLabel', 0:7, 'XTick',1:8 );
+    if neur ==2
+        title('           Q units activity in function of the number of distractors')
+    end
+    
 end
 
 %% Resp of the modulated input units
-targ_resp = zeros(1,1000);
-other_resp = zeros(24,1000);
-for trial = 1:1000
-   targ_resp(trial) =  input_acts(trial,5,25+(Gcol(trial)-1)*8+Gpostarg(trial) );
-   p = 1:25;
-   p((Gcol(trial)-1)*8+Gpostarg(trial))=[];
-   other_resp(:,trial) =  squeeze(input_acts(trial,5,25+p ));
+targ_resp = zeros(1,n_trials);
+other_resp = zeros(24,n_trials);
+for trial = 1:n_trials
+    targ_resp(trial) =  input_acts(trial,5,25+(Gcol(trial)-1)*8+Gpostarg(trial) );
+    p = 1:25;
+    p((Gcol(trial)-1)*8+Gpostarg(trial))=[];
+    other_resp(:,trial) =  squeeze(input_acts(trial,5,25+p ));
 end
-boxplot([targ_resp'; reshape(other_resp,[24*1e3,1])], [ones(1000,1); 2*ones(24*1e3,1)])
+figure;boxplot([targ_resp'; reshape(other_resp,[24*n_trials,1])], [ones(n_trials,1); 2*ones(24*n_trials,1)])
 
 
 t1 = 5;
 p_respond = zeros(n.ny_normal,3,8);
 for neur = 1:25%95
-   %figure;
+    %figure;
     for col = 1:3
         for p = 1:8
-            stim_present = input_acts(:,5,25+(col-1)*8+p+1)==1;
+            stim_present = input_acts(:,5,25+(col-1)*8+p)> 0.9;
             stim_absent = input_acts(:,5,25+(col-1)*8+p+1)~=1;
             X =  hidden_acts(stim_present,t1,neur);
             Y =  hidden_acts(stim_absent,t1,neur);
-            [H,p_respond(n,col,p)] = ttest2(X',Y',0.05, 'right');
+            [H,p_respond(neur,col,p)] = ttest2(X',Y',0.05, 'right');
         end
     end
 end
-H = p_respond<0.001;
-figure; imagesc(squeeze(sum(H(ny_normal+1:nw.ny,:,:),2)))
-figure; imagesc(squeeze(sum(H(ny_normal+1:nw.ny,:,:),3)))
+H = p_respond<0.01;
+figure; imagesc(squeeze(sum(H(:,:,:),2)))
+figure; imagesc(squeeze(sum(H(:,:,:),3)))

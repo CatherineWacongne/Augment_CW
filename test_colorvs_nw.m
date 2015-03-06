@@ -9,7 +9,7 @@ trial_types = unique(test);%[[ones(7,1);2*ones(7,1);3*ones(7,1)] repmat([2:8]', 
 states = zeros(size(trial_types,1), 50);
 input_acts = zeros(size(trial_types,1), 50, nw.n_inputs*2);
 hidden_acts = zeros(size(trial_types,1), 50,nw.ny);
-q_acts = zeros(size(trial_types,1), 50, nw.nz);
+q_acts = zeros(size(trial_types,1), 50, nw.nz+nw.nzs);
 
 trial_ends = zeros(size(trial_types,1),1);
 reward_trials = zeros(size(trial_types,1),1);
@@ -40,6 +40,7 @@ for i = 1:numel(trial_types)
     t.Color_only = 0;
     t.showdistractors = 1;
     t.reward_vs = 1;
+    t.reward_color = 0;
     
     %t.setTrialType(trial_types(i,1), trial_types(i,2));
     t.setTrialTypeGen(trial_types(i))

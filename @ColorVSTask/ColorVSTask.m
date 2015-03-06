@@ -36,6 +36,7 @@ classdef ColorVSTask < handle & Task
         n_genTrials = 100000;
         Color_only = 1;
         reward_vs = 0;
+        reward_color = 1;
         showdistractors = 0;
     end
     
@@ -160,6 +161,7 @@ classdef ColorVSTask < handle & Task
                         end
                     end
                 case obj.SEQSTATE
+                    if obj.reward_color
                     if (networkAction(obj.cue_col) ~= 1)
                         disp('Failure')
                         obj.stateReset();
@@ -188,7 +190,38 @@ classdef ColorVSTask < handle & Task
                         else
                             obj.incrCounter();
                         end
-                    end    
+                    end 
+                    else
+                         if (~all(networkAction == fixation)) % Trial failed
+                             disp('Broke Fixation')
+                             obj.stateReset();
+                        
+                        
+                         elseif( obj.counter == obj.fix_dur)
+%                             obj.cur_reward = obj.cur_reward + 3*obj.fix_reward; % second small reward for color task
+                            disp('No more Color Reward !')
+                            obj.resetCounter();
+                            obj.nwInput = zeros(1,obj.n_col*obj.n_pos+1);
+                            for d = 1:8
+                                if obj.display_col(d)>0
+                                    if obj.showdistractors
+                                        obj.nwInput((obj.display_col(d)-1)*obj.n_pos + d)=1; % bring the targets
+                                    else
+                                        if obj.display_col(d)==obj.cue_col
+                                            obj.nwInput((obj.display_col(d)-1)*obj.n_pos + d)=1; 
+                                        end
+                                    end
+                                end
+                            end 
+                            if obj.Color_only
+                                obj.stateReset();
+                            else 
+                                obj.STATE = obj.GOSTATE;
+                            end
+                        else
+                            obj.incrCounter();
+                        end
+                    end
                 case obj.GOSTATE
                     %disp('GO')
                     % Wait until fixation is broken
