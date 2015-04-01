@@ -377,7 +377,7 @@ classdef FBNetwork3 < handle
       obj.weights_xy(:, obj.ny_normal+1:end) = 0; 
 %       obj.weights_xy(1, 1:obj.ny_normal) = obj.weights_xy(1, 1:obj.ny_normal) - obj.n_inputs .* log(1+exp(0))*obj.yz_weight_range/6;
 %       obj.weights_xy(2+obj.n_inputs:end, 1:obj.ny_normal) = 0;
-      obj.weights_yzs(1,:) = obj.weights_yzs(1,:)+obj.yz_weight_range;
+%       obj.weights_yzs(1,:) = obj.weights_yzs(1,:)+obj.yz_weight_range;
       obj.weights_yz(obj.ny_normal+1 +obj.bias_hidden:end, :) = 0; 
       obj.weights_yzs(obj.ny_normal+1 +obj.bias_hidden:end, :) = 0; 
     end    

@@ -19,7 +19,7 @@ fb = 1;
 %% Parameters
 % learning
 gamma  = 0.9;
-beta   = 0.1;%15;
+beta   = 0.07;%15;
 lambda = 0.2;%.20;
 
 % network hidden units
@@ -71,7 +71,7 @@ set(a3,'NextPlot','replace');
 %% Network Settings:
 %
 if fb
-    n = FBNetwork3();
+    n = FBNetwork4();
     n.limit_traces = false;
     n.input_method = 'modulcells';
     
@@ -244,7 +244,7 @@ for color_on = [0]
                 if numel(b)>1001 && t.reward_vs == 0
                     if  numel(find(rewards(b(max(1,trialno-10000):trialno-1)-1)>=0.5))>8500
                         t.reward_vs = 1;
-                         beta   = 0.05;
+                         beta   = 0.03;
                         
                         tic =trialno;
 %                         keyboardn.
@@ -280,4 +280,4 @@ for color_on = [0]
     convergence_res = [converged, c_epoch]
 end
 
-save('150306_resultsColorVS_gen_fb3.mat', 'n', 't', 'gamma', 'beta', 'lambda', 'ny_memory', 'ny_normal', 'trial_types','rewards')
+save('150401_resultsColorVS_gen_fb4.mat', 'n', 't', 'gamma', 'beta', 'lambda', 'ny_memory', 'ny_normal', 'trial_types','rewards')

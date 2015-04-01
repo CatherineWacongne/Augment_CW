@@ -13,6 +13,7 @@ classdef FGTask < handle & Task
         
         trialTarget = 0;     % cue_col
         target_pos = 0;
+        texturetarget = 1;
         
         trialSetExternal = false;
         keepTrialsforGeneralization = false;
@@ -25,11 +26,12 @@ classdef FGTask < handle & Task
         old_reward=0;
     end
     properties % properties that can be changed from the command window or an external script
-        
+        bg_on = 0;
         size_net = 10;
         target_sizes = 3;
         edge_size = 2;
-        
+        reward_texture = 1;
+        reward_position = 0;
     end
     
     methods
@@ -43,7 +45,7 @@ classdef FGTask < handle & Task
             obj.intTrialType = -1;
             obj.fp_input_index = 201; % index of the input vector that represents the fixation point
             obj.fix_action_index = 1;
-            obj.n_actions = 101;
+            obj.n_actions = 103;
             obj.mem_dur = 0;
             obj.fix_dur = 2;
         end
@@ -71,6 +73,7 @@ classdef FGTask < handle & Task
                     %disp('INTERTRIAL')
                     if (obj.counter == obj.intertrial_dur)
                         obj.pickTrialType();
+                        obj.nwInput = 0*obj.nwInput;
                         obj.nwInput(obj.fp_input_index) = 1; % Activate Fixation point
                         
                         obj.STATE = obj.WAITFIXSTATE;
@@ -115,10 +118,10 @@ classdef FGTask < handle & Task
                             else
                                 % Switch off fixation point
                                 obj.nwInput(obj.fp_input_index) = 0;
-                                obj.STATE = obj.GOSTATE;
+                                obj.STATE = obj.SEQSTATE;
                             end
                             % Show cue:
-                            
+                            obj.nwInput = obj.nwInput*0;
                             obj.nwInput(obj.FGunits) = obj.FGinput;
                             
                         else
@@ -132,9 +135,12 @@ classdef FGTask < handle & Task
                     % Wait until fixation is broken
                     
                     if (obj.counter <= obj.max_dur) % Trial expired?
-                        if (~all(networkAction == fixation))  % Broke Fixation
+                        if obj.reward_position ==0
+                             obj.stateReset();
+                        
+                        elseif (~all(networkAction == fixation))  % Broke Fixation
                             
-                            if (any(networkAction(obj.trialTarget+1) == 1) ) % Correct:
+                            if (any(networkAction(obj.trialTarget+3) == 1) ) % Correct:
                                 disp('Reward!')
                                 %                                  keyboard
                                 obj.correct_trials = obj.correct_trials + 1;
@@ -176,20 +182,46 @@ classdef FGTask < handle & Task
                         end
                     end
                 case obj.SEQSTATE
-                    if (networkAction(obj.fix_action_index) ~= 1)
-                        disp('Failure')
-                        obj.stateReset();
-                    else
-                        if( obj.counter == obj.fix_dur)
-                            obj.cur_reward = obj.cur_reward + obj.fix_reward; % second fixation reward
+                    if obj.reward_texture
+                        if (any(networkAction(obj.texturetarget+1) == 1) ) % Correct:
+                            disp('Reward Texture')
+                            %                                  keyboard
                             obj.resetCounter();
-                            obj.nwInput(obj.fp_input_index) = 0;
-                            obj.nwInput = zeros(1,obj.n_col*obj.n_pos+1);
+%                             keyboard
+                            obj.cur_reward = obj.cur_reward + obj.fix_reward*2;
+                            
                             obj.STATE = obj.GOSTATE;
                         else
-                            obj.incrCounter();
+                            disp('Failure')
+                            obj.stateReset();
+                        end
+                    else
+                        if (~all(networkAction == fixation)) % Trial failed
+                            disp('Broke Fixation')
+                            obj.stateReset();
+                        else
+                            disp('No more Texture reward')
+                            obj.resetCounter();
+                            obj.STATE = obj.GOSTATE;
                         end
                     end
+                    
+                    
+                    
+                    %                     if (networkAction(obj.fix_action_index) ~= 1)
+                    %                         disp('Failure')
+                    %                         obj.stateReset();
+                    %                     else
+                    %                         if( obj.counter == obj.fix_dur)
+                    %                             obj.cur_reward = obj.cur_reward + obj.fix_reward; % second fixation reward
+                    %                             obj.resetCounter();
+                    %                             obj.nwInput(obj.fp_input_index) = 0;
+                    %                             obj.nwInput = zeros(1,obj.n_col*obj.n_pos+1);
+                    %                             obj.STATE = obj.GOSTATE;
+                    %                         else
+                    %                             obj.incrCounter();
+                    %                         end
+                    %                     end
                     
             end
             
@@ -239,46 +271,46 @@ classdef FGTask < handle & Task
         end
         
         
-        function setTrialType(obj, targ_size, target_pos, Fig_col)
+        function setTrialType(obj,  target_pos, Fig_col)
             % Externally set the trial type
-            %
+            targ_size = 3;
             targ_x = target_pos(1);
             targ_y = target_pos(2);
-            Fig_coord_x = targ_x: targ_x+targ_size-1;
-            Fig_coord_y = targ_y: targ_y+targ_size-1;
+            Fig_coord_x = targ_x-1: targ_x+1;
+            Fig_coord_x(Fig_coord_x<1) = Fig_coord_x(Fig_coord_x<1)+obj.size_net; % makes the space a torus
+            Fig_coord_x(Fig_coord_x>10) = Fig_coord_x(Fig_coord_x>10)-obj.size_net;
+            Fig_coord_y = targ_y-1: targ_y+1;
+            Fig_coord_y(Fig_coord_y<1) = Fig_coord_y(Fig_coord_y<1)+obj.size_net;
+            Fig_coord_y(Fig_coord_y>10) = Fig_coord_y(Fig_coord_y>10)-obj.size_net;
             layer_1 = zeros(obj.size_net);
             layer_2 = zeros(obj.size_net);
             if Fig_col==1
                 layer_1(Fig_coord_x, Fig_coord_y) = ones(targ_size);
-                layer_2 = (layer_2+1)-layer_1;
+                if obj.bg_on;layer_2 = (layer_2+1)-layer_1;end
             else
                 layer_2(Fig_coord_x, Fig_coord_y) = ones(targ_size);
-                layer_1 = (layer_1+1)-layer_2;
+                if obj.bg_on;layer_1 = (layer_1+1)-layer_2;end
             end
             
             
             obj.FGinput = [reshape(layer_1,1,[]), reshape(layer_2,1,[])];
-            obj.intTrialType = 1e3*Fig_col+1e2*targ_size+1e1*targ_x+targ_y;
+            obj.intTrialType = 1e2*Fig_col+1e1*(targ_x-1)+(targ_y-1);
             if Fig_col==1
-                if targ_size<=2
-                    obj.trialTarget = find(reshape(layer_1,1,[]));
-                else
-                    Targ_coord_x = targ_x+1: targ_x+targ_size-2;
-                    Tag_coord_y = targ_y+1: targ_y+targ_size-2;
-                    layer_t = zeros(obj.size_net);
-                    layer_t(Targ_coord_x, Tag_coord_y) = ones(targ_size-2);
-                    obj.trialTarget = find(reshape(layer_t,1,[]));
-                end
+                obj.texturetarget = 1;
+                Targ_coord_x = targ_x;
+                Tag_coord_y = targ_y;
+                layer_t = zeros(obj.size_net);
+                layer_t(Targ_coord_x, Tag_coord_y) = ones(targ_size-2);
+                obj.trialTarget = find(reshape(layer_t,1,[]));
+                
             else
-                if targ_size<=2
-                    obj.trialTarget = find(reshape(layer_2,1,[]));
-                else
-                    Targ_coord_x = targ_x+1: targ_x+targ_size-2;
-                    Tag_coord_y = targ_y+1: targ_y+targ_size-2;
-                    layer_t = zeros(obj.size_net);
-                    layer_t(Targ_coord_x, Tag_coord_y) = ones(targ_size-2);
-                    obj.trialTarget = find(reshape(layer_t,1,[]));
-                end
+                obj.texturetarget = 2;
+                Targ_coord_x = targ_x;
+                Tag_coord_y = targ_y;
+                layer_t = zeros(obj.size_net);
+                layer_t(Targ_coord_x, Tag_coord_y) = ones(targ_size-2);
+                obj.trialTarget = find(reshape(layer_t,1,[]));
+                
             end
             obj.trialSetExternal = true;
         end
@@ -288,53 +320,54 @@ classdef FGTask < handle & Task
             
             % Generate a random trial if type has not been externally set.
             if (~obj.trialSetExternal )
-                targ_size = obj.target_sizes(randi(numel(obj.target_sizes)));
-                targ_possible_pos = ones(obj.size_net);
-                targ_possible_pos([1:obj.edge_size end-obj.edge_size-targ_size+1:end],:)=0;
-                targ_possible_pos(:,[1:obj.edge_size end-obj.edge_size-targ_size+1:end])=0;
-                [poss_x,poss_y,~] = find(targ_possible_pos);
-                a = randi(numel(poss_x));
-                targ_x = poss_x(a);
-                targ_y = poss_y(a);
+                targ_size = 3;
+                targ_x = randi(obj.size_net);
+                targ_y = randi(obj.size_net);
                 Fig_col = randi(2)-1;
                 
-                Fig_coord_x = targ_x: targ_x+targ_size-1;
-                Fig_coord_y = targ_y: targ_y+targ_size-1;
+                Fig_coord_x = targ_x-1: targ_x+1;
+                Fig_coord_x(Fig_coord_x<1) = Fig_coord_x(Fig_coord_x<1)+obj.size_net; % makes the space a torus
+                Fig_coord_x(Fig_coord_x>10) = Fig_coord_x(Fig_coord_x>10)-obj.size_net;
+                Fig_coord_y = targ_y-1: targ_y+1;
+                Fig_coord_y(Fig_coord_y<1) = Fig_coord_y(Fig_coord_y<1)+obj.size_net;
+                Fig_coord_y(Fig_coord_y>10) = Fig_coord_y(Fig_coord_y>10)-obj.size_net;
+                
                 layer_1 = zeros(obj.size_net);
                 layer_2 = zeros(obj.size_net);
                 if Fig_col==1
+                    obj.texturetarget = 1;
                     layer_1(Fig_coord_x, Fig_coord_y) = ones(targ_size);
-                    layer_2 = (layer_2+1)-layer_1;
+                    if obj.bg_on; layer_2 = (layer_2+1)-layer_1;end
+                    
+                        
                 else
+                    obj.texturetarget = 2;
                     layer_2(Fig_coord_x, Fig_coord_y) = ones(targ_size);
-                    layer_1 = (layer_1+1)-layer_2;
+                    if obj.bg_on;layer_1 = (layer_1+1)-layer_2;end
                 end
                 
                 
                 obj.FGinput = [reshape(layer_1,1,[]), reshape(layer_2,1,[])];
-                obj.intTrialType = 1e3*Fig_col+1e2*targ_size+1e1*targ_x+targ_y;
+                obj.intTrialType = 1e2*Fig_col+1e1*targ_x+targ_y;
                 if Fig_col==1
-                    if targ_size<=2
-                        obj.trialTarget = find(reshape(layer_1,1,[]));
-                    else
-                        Targ_coord_x = targ_x+1: targ_x+targ_size-2;
-                        Tag_coord_y = targ_y+1: targ_y+targ_size-2;
-                        layer_t = zeros(obj.size_net);
-                        layer_t(Targ_coord_x, Tag_coord_y) = ones(targ_size-2);
-                        obj.trialTarget = find(reshape(layer_t,1,[]));
-                    end
+                    obj.texturetarget = 1;
+                    Targ_coord_x = targ_x;
+                    Tag_coord_y = targ_y;
+                    layer_t = zeros(obj.size_net);
+                    layer_t(Targ_coord_x, Tag_coord_y) = ones(targ_size-2);
+                    obj.trialTarget = find(reshape(layer_t,1,[]));
+                    
                 else
-                    if targ_size<=2
-                        obj.trialTarget = find(reshape(layer_2,1,[]));
-                    else
-                        Targ_coord_x = targ_x+1: targ_x+targ_size-2;
-                        Tag_coord_y = targ_y+1: targ_y+targ_size-2;
-                        layer_t = zeros(obj.size_net);
-                        layer_t(Targ_coord_x, Tag_coord_y) = ones(targ_size-2);
-                        obj.trialTarget = find(reshape(layer_t,1,[]));
-                    end
+                    obj.texturetarget = 2;
+                    Targ_coord_x = targ_x;
+                    Tag_coord_y = targ_y;
+                    layer_t = zeros(obj.size_net);
+                    layer_t(Targ_coord_x, Tag_coord_y) = ones(targ_size-2);
+                    obj.trialTarget = find(reshape(layer_t,1,[]));
+                    
+                    
                 end
-                
+                if obj.trialTarget>100; keyboard;end
             end
             
         end

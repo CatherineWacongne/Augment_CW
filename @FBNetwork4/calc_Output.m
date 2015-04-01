@@ -10,7 +10,7 @@ ZS = [obj.bias_hidden obj.Y] * obj.weights_yzs;
 % ZS(ZS < 0) = 0;
 
 % Calculate initial activations of output layer:
-Z =  [obj.bias_hidden ZS]* obj.weights_zzs;%[obj.bias_hidden obj.Y] * obj.weights_yz +
+Z =  [obj.bias_hidden ZS]* obj.weights_zzs+[obj.bias_hidden obj.Y]* obj.weights_yz;%[obj.bias_hidden obj.Y] * obj.weights_yz +
 
 % Get rid of uninteresting differences:
 Z = round(Z * obj.prec_q_acts) / obj.prec_q_acts;
@@ -26,8 +26,8 @@ end
 
 winner = -1;
 if isinternal
-ZSZ = [ZS Z];
-obj.qas = [ZS Z];
+ZSZ = [ZS Z+ZS];
+obj.qas = [ZS Z+ZS];
 else 
     obj.qas = [ZS];
     ZSZ =ZS;

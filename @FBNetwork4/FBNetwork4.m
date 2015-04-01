@@ -1,4 +1,4 @@
-classdef FBNetwork3 < handle
+classdef FBNetwork4 < handle
   %SNETWORK Encapsulates structure, settings and state for an AuGMEnT network
   
   properties
@@ -361,22 +361,23 @@ classdef FBNetwork3 < handle
         (rand(obj.nx + obj.bias_input, obj.ny))- 0.5*obj.xy_weight_range;
 
       % Set weights for Hidden->Output
-      obj.weights_yz = 0*((rand(obj.ny + obj.bias_hidden, obj.nz))- 0.5*obj.yz_weight_range);%obj.yz_weight_range* ...
+      obj.weights_yz = obj.yz_weight_range*(rand(obj.ny + obj.bias_hidden, obj.nz))- 0.5*obj.yz_weight_range;%obj.yz_weight_range* ...
       
     
       obj.weights_yzs = obj.yz_weight_range* ...
         (rand(obj.ny + obj.bias_hidden, obj.nzs))- 0.5*obj.yz_weight_range; 
       obj.weights_zzs = [(rand(1,obj.nzs)- 0.5)*obj.yz_weight_range ; diag((rand(obj.nzs, 1)*obj.yz_weight_range+1))];
       
-%       obj.yz_weight_range* ...
-%         (rand(obj.nzs + obj.bias_hidden, obj.nz))- 0.5*obj.yz_weight_range; 
+% %       obj.yz_weight_range* ...
+% %         (rand(obj.nzs + obj.bias_hidden, obj.nz))- 0.5*obj.yz_weight_range; 
 
 
       % For visualization: put all weights in input->hidden that are not
       % used to 0;
       obj.weights_xy(:, obj.ny_normal+1:end) = 0; 
-      obj.weights_xy(1, 1:obj.ny_normal) = obj.weights_xy - obj.n_inputs .* log(1+exp(0));
-%       obj.weights_xy(2+obj.n_inputs:end, 1:obj.ny_normal) = 0; 
+%       obj.weights_xy(1, 1:obj.ny_normal) = obj.weights_xy(1, 1:obj.ny_normal) - obj.n_inputs .* log(1+exp(0))*obj.yz_weight_range/6;
+%       obj.weights_xy(2+obj.n_inputs:end, 1:obj.ny_normal) = 0;
+%       obj.weights_yzs(1,:) = obj.weights_yzs(1,:)+obj.yz_weight_range;
       obj.weights_yz(obj.ny_normal+1 +obj.bias_hidden:end, :) = 0; 
       obj.weights_yzs(obj.ny_normal+1 +obj.bias_hidden:end, :) = 0; 
     end    

@@ -19,12 +19,12 @@ fb = 1;
 %% Parameters
 % learning
 gamma  = 0.9;
-beta   = 0.05;%15;
-lambda = 0.8;%.20;
+beta   = 0.02;%15;
+lambda = 0.2;%.20;
 
 % network hidden units
 ny_memory = 25;
-ny_normal = 25;
+ny_normal = 100;
 
 % for experiments, fix the random generator:
 % rnd_stream = RandStream('mt19937ar','Seed', seed);
@@ -75,10 +75,10 @@ if fb
     n.limit_traces = false;
     n.input_method = 'modulcells';
     
-    n.n_inputs = 25;%length(t.nwInput);
+    n.n_inputs = 201;%length(t.nwInput);
     
     n.ny_normal = ny_normal;
-    n.nz =  12; %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    n.nz =  103; %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     n.nzs = n.nz;
     n.controller = 'max-boltzmann';
     n.exploit_prob = .975;
@@ -86,7 +86,7 @@ if fb
 %     n.instant_transform_fn = 'rectified-linear' ;
     n.delta_limit = 2;
     n.limit_delta = 1;
-    n.limit_traces = 1;
+%     n.limit_traces = 1;
     
     n.setInstantTransform('shifted-sigmoid',2.5);
     n.setMemoryTransform('shifted-sigmoid',2.5);
@@ -134,29 +134,31 @@ end
 
 
 
-t = ColorVSTask();
-t.n_genTrials = 1e5;
-t.setTrialsForGeneralisation;
+t = FGTask();
+t.fix_dur = 1;
+t.bg_on = 0;
+% t.n_genTrials = 1e5;
+% t.setTrialsForGeneralisation;
 
 % Reset all variables:
 % n_trials (estimated number of completed trials)
 
 for color_on = [0]
     % Test length:
-    epochs = 50000*22;%0-50000*55*color_on;
-    n_trials = 10000*24;%0-10000*60*color_on;
+    epochs = 50000*45;%0-50000*55*color_on;
+    n_trials = 10000*50;%0-10000*60*color_on;
 
-    t.Color_only = color_on;
+%     t.Color_only = color_on;
     trial_res = zeros(1, n_trials);
     
     states = zeros(epochs, 1);
-    input_acts = ones(epochs, 25) * -100;
+    input_acts = ones(epochs, n.n_inputs) * -100;
     hidden_acts = ones(epochs, ny_normal*2) * -100;
     q_activations = ones(epochs, n.nz+n.nzs) * -100;
     deltas = zeros(1,epochs);
     
     correct_perc = zeros(1,epochs);
-    trial_choices = zeros(epochs,12);
+    trial_choices = zeros(epochs,n.nz);
     
     trial_types = ones(epochs,1) * -1;
     trial_ends = zeros(epochs, 1);
@@ -172,14 +174,15 @@ for color_on = [0]
     e_rewards = zeros(1,epochs);
     
     trialno = 1;
-    w51 = zeros(n.ny_normal,epochs);
-    w26 = zeros(n.ny_normal,epochs);
-    wy15 = zeros(n.nzs+1,epochs);
+%     w51 = zeros(n.ny_normal,epochs);
+%     w26 = zeros(n.ny_normal,epochs);
+%     wy15 = zeros(n.nzs+1,epochs);
     res_trial_stats = false;
     tic = 1;
-    t.showdistractors = 1;
-    t.reward_vs = 0;
-    t.reward_color = 1;
+%     t.showdistractors = 1;
+%     t.reward_vs = 0;
+%     t.reward_color = 1;
+    wxy = n.weights_xy;
     for i=1:epochs % an epoch is a point in time, a trial contains multiple epochs (defined by the CAPITALSTATES properties of the task)
         if ~ProgramReady
             
@@ -189,7 +192,7 @@ for color_on = [0]
             % Network values:
             input_acts(i,:) = n.noiseless_input;
             hidden_acts(i,:) =  n.Y';
-            q_activations(i,:) =  n.qas'; %
+%             q_activations(i,:) =  n.qas'; %
             e_rewards(i) = n.previous_critic_val; % Expected reward
             deltas(i) = n.delta; % TD-error
             trial_choices(i,:) = n.Z; % action on timestep
@@ -198,9 +201,9 @@ for color_on = [0]
             states(i) = t.STATE;
             trial_types(i) = t.intTrialType;
             rewards(i) = reward; % Reward for previous action
-            w51(:,i) = n.weights_xy(51,1:n.ny_normal)';
-            w26(:,i) = n.weights_xy(26,1:n.ny_normal)';
-            wy15(:,i)= n.weights_zzs(:,4);
+%             w51(:,i) = n.weights_xy(51,1:n.ny_normal)';
+%             w26(:,i) = n.weights_xy(26,1:n.ny_normal)';
+%             wy15(:,i)= n.weights_zzs(:,4);
             if trialno<1001
                 %                 correct_perc(i) = t.getPerformance();
                 correct_perc(i) = numel(find(trial_res==1))/trialno;
@@ -225,22 +228,18 @@ for color_on = [0]
                 % Total number of trials in this run:
                 trialno = trialno + 1;
                 b = find(trial_ends==1);
-                if t.reward_vs   && (trialno-tic)>10000 && t.reward_color
-                    if correct_perc(i-1) > .9
-                       
-                        t.reward_color = 0;
-                        keyboard;
-                    end
-
-                end
-                if numel(b)>1001 && t.reward_vs == 0
-                    if  numel(find(rewards(b(max(1,trialno-10000):trialno-1)-1)>=0.5))>8500
-                        t.reward_vs = 1;
+                
+               
+                
+                if numel(b)>1001 && t.reward_position == 0
+                    if  numel(find(rewards(b(max(1,trialno-10000):trialno-1)-1)>=0.4))>9250
+                        t.reward_position = 1;
                         
                         tic =trialno;
-%                         keyboardn.
+%                       keyboard
                     end
                 end
+                
                 
             end
             %%% Update Task
@@ -271,4 +270,4 @@ for color_on = [0]
     convergence_res = [converged, c_epoch]
 end
 
-save('150303_resultsColorVS_gen_fb3.mat', 'n', 't', 'gamma', 'beta', 'lambda', 'ny_memory', 'ny_normal', 'trial_types','rewards')
+save('150306_resultsFG_fb3.mat', 'n', 't', 'gamma', 'beta', 'lambda', 'ny_memory', 'ny_normal', 'trial_types','rewards')
