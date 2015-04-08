@@ -280,4 +280,4 @@ for color_on = [0]
     convergence_res = [converged, c_epoch]
 end
 
-save('150401_resultsColorVS_gen_fb4.mat', 'n', 't', 'gamma', 'beta', 'lambda', 'ny_memory', 'ny_normal', 'trial_types','rewards')
+save('150407_resultsColorVS_gen_fb4.mat', 'n', 't', 'gamma', 'beta', 'lambda', 'ny_memory', 'ny_normal', 'trial_types','rewards')
