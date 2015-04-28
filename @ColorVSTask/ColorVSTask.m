@@ -8,6 +8,7 @@ classdef ColorVSTask < handle & Task
         prev_intTrialType = -1;
         fp_input_index = 25; % index of the input vector that represents the fixation point
         fix_action_index = 4;
+        fp_input_index_green = 26;
         
         n_col = 3;
         n_pos = 8;
@@ -55,9 +56,10 @@ classdef ColorVSTask < handle & Task
             obj.cue_col = 0;
             obj.target_pos = 0;
             obj.fp_input_index = 25; % index of the input vector that represents the fixation point
+            obj.fp_input_index_green = 26;
             obj.fix_action_index = 4;
             obj.n_actions = 12;
-            obj.mem_dur = 0;
+            obj.mem_dur = 2;
         end
         
         
@@ -66,7 +68,7 @@ classdef ColorVSTask < handle & Task
         end
         
         function setDefaultNetworkInput(obj)
-            obj.nwInput = zeros(1, obj.n_col*obj.n_pos+1);   % Fix + 8 positions*3colors(R,G,B)
+            obj.nwInput = zeros(1, obj.n_col*obj.n_pos+2);   % Fix + 8 positions*3colors(R,G,B)
         end
         
         function [nwInput, reward, trialend] = doStep(obj, networkAction)
@@ -143,19 +145,36 @@ classdef ColorVSTask < handle & Task
                     % disp('MEMSTATE')
                     
                     % Make sure no cues are shown:
-                    obj.nwInput(1:obj.n_col*obj.n_pos) = zeros(1,obj.n_col*obj.n_pos);
+                    obj.nwInput = 0*obj.nwInput;
+                    obj.nwInput(obj.fp_input_index) = 1; % Activate Fixation point
                     % Check if still fixating:
-                    if (networkAction(obj.fix_action_index) ~= 1)
+                    if (~all(networkAction == fixation))
                         disp('Failure')
                         obj.stateReset();
                     else
                         if( obj.counter == obj.mem_dur)
+                            disp('delay Fixation Reward')
+                            obj.cur_reward = obj.cur_reward + obj.fix_reward;
                             obj.resetCounter();
                             
-                            obj.nwInput = zeros(1,obj.n_col*obj.n_pos+1);  % turns everything off.
+%                             obj.nwInput = zeros(1,obj.n_col*obj.n_pos+2);  % turns everything off.
                            
-                                obj.STATE = obj.GOSTATE;
-                           
+                                obj.STATE = obj.SEQSTATE;
+                                obj.nwInput = 0*obj.nwInput;
+                                obj.nwInput(obj.fp_input_index_green) = 1;
+                                
+%                                 for d = 1:8
+%                                     if obj.display_col(d)>0
+%                                         if obj.showdistractors
+%                                             obj.nwInput((obj.display_col(d)-1)*obj.n_pos + d)=1; % bring the targets
+%                                         else
+%                                             if obj.display_col(d)==obj.cue_col
+%                                                 obj.nwInput((obj.display_col(d)-1)*obj.n_pos + d)=1;
+%                                             end
+%                                         end
+%                                     end
+%                                 end
+                                
                         else
                             obj.incrCounter();
                         end
@@ -170,7 +189,7 @@ classdef ColorVSTask < handle & Task
                             obj.cur_reward = obj.cur_reward + 3*obj.fix_reward; % second small reward for color task
                             disp('Color Reward !')
                             obj.resetCounter();
-                            obj.nwInput = zeros(1,obj.n_col*obj.n_pos+1);
+                            obj.nwInput = zeros(1,obj.n_col*obj.n_pos+2);
                             for d = 1:8
                                 if obj.display_col(d)>0
                                     if obj.showdistractors
@@ -201,7 +220,7 @@ classdef ColorVSTask < handle & Task
 %                             obj.cur_reward = obj.cur_reward + 3*obj.fix_reward; % second small reward for color task
                             disp('No more Color Reward !')
                             obj.resetCounter();
-                            obj.nwInput = zeros(1,obj.n_col*obj.n_pos+1);
+                            obj.nwInput = zeros(1,obj.n_col*obj.n_pos+2);
                             for d = 1:8
                                 if obj.display_col(d)>0
                                     if obj.showdistractors
