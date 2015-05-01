@@ -94,7 +94,7 @@ obj.weights_xy = obj.weights_xy + obj.beta * obj.fdelta * obj.wxy_traces_now;
 % Hidden to output:
 obj.weights_yz = obj.weights_yz + obj.beta * obj.fdelta * obj.wyz_traces;
 obj.weights_yzs = obj.weights_yzs + obj.beta * obj.fdelta * obj.wyzs_traces;
-obj.weights_zzs = obj.weights_zzs + obj.beta * obj.fdelta * obj.wzzs_traces;
+% obj.weights_zzs = obj.weights_zzs + obj.beta * obj.fdelta * obj.wzzs_traces;
 % Update eligibility traces
 
 if (reset_traces) % Note that the correct place to reset traces is essential!

@@ -7,7 +7,7 @@ trial_types = unique(test);
 [net_success, input_acts, hidden_acts,q_acts, fig_hnd, pretty, trial_types, reward_trials ] = test_colorvs_nw(n, test);
 
 %%
-figure;imagesc(n.weights_xy(1+[1:25 26 34 42 27 35 43 28 36 44 29 37 45 30 38 46 31 39 47 32 40 48 33 41 49 50],:), [-2 2])
+figure;imagesc(n.weights_xy(1+[1:26 26 34 42 27 35 43 28 36 44 29 37 45 30 38 46 31 39 47 32 40 48 33 41 49 50],:), [-2 2])
 W_xreord = n.weights_xy(1+[1:25 26 34 42 27 35 43 28 36 44 29 37 45 30 38 46 31 39 47 32 40 48 33 41 49 50],:);
 W_modul = [mean(W_xreord(26:28,1:25));mean(W_xreord(29:31,1:25));mean(W_xreord(32:34,1:25));...
     mean(W_xreord(35:37,1:25));mean(W_xreord(38:40,1:25));mean(W_xreord(41:43,1:25))...

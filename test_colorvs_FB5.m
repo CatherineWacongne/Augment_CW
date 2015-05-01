@@ -19,12 +19,12 @@ fb = 1;
 %% Parameters
 % learning
 gamma  = 0.9;
-beta   = 0.06;%15;
+beta   = 0.1;%15;
 lambda = 0.2;%.20;
 
 % network hidden units
-ny_memory = 7;
-ny_normal = 20;
+ny_memory = 6;
+ny_normal = 15;
 
 % for experiments, fix the random generator:
 % rnd_stream = RandStream('mt19937ar','Seed', seed);
@@ -144,8 +144,8 @@ t.setTrialsForGeneralisation;
 
 for color_on = [0]
     % Test length:
-    epochs = 50000*70;%0-50000*55*color_on;
-    n_trials = 10000*65;%0-10000*60*color_on;
+    epochs = 50000*40;%0-50000*55*color_on;
+    n_trials = 10000*35;%0-10000*60*color_on;
 
     t.Color_only = color_on;
     trial_res = zeros(1, n_trials);
@@ -235,9 +235,9 @@ for color_on = [0]
                     if correct_perc(i-1) > .9
                        
                         t.reward_color = 0;
-                        beta   = 0.01;
+                         n.beta   = 0.03;
                         tac =trialno;
-%                         keyboard;
+                        keyboard;
                     end
 
                 end
@@ -281,4 +281,4 @@ for color_on = [0]
     convergence_res = [converged, c_epoch]
 end
 
-save('150424_resultsColorVS_gen_fb5.mat', 'n', 't', 'gamma', 'beta', 'lambda', 'ny_memory', 'ny_normal', 'trial_types','rewards')
+save('150401_resultsColorVS_gen_fb5.mat', 'n', 't', 'gamma', 'beta', 'lambda', 'ny_memory', 'ny_normal', 'trial_types','rewards')

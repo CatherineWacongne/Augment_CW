@@ -15,8 +15,8 @@ classdef FBNetwork5 < handle
     population_decay = false;
     mem_decays = 1.0; % Dummy variable for population decay matrix
 
-    xy_weight_range = .5; % Range [-a,a] of initial weights
-    yz_weight_range = .5; % Range [-a,a] of initial weights
+    xy_weight_range = .3; % Range [-a,a] of initial weights
+    yz_weight_range = .3; % Range [-a,a] of initial weights
     
     bias_input = 1; % 1 for a bias unit in input layer, else 0
     bias_hidden = 1; % 1 for a bias unit in hidden layer, else 0
@@ -362,6 +362,8 @@ classdef FBNetwork5 < handle
       % Set weights for Input->Hidden
       obj.weights_xy = obj.xy_weight_range* ...
         (rand(obj.nx + obj.bias_input, obj.ny))- 0.5*obj.xy_weight_range;
+      obj.weights_xy(obj.n_inputs*2+obj.bias_input+1:end,1:obj.ny_normal) = 2*obj.xy_weight_range* ...
+        (rand(obj.n_inputs, obj.ny_normal))- obj.xy_weight_range;
 
       % Set weights for Hidden->Output
       obj.weights_yz = obj.yz_weight_range*(rand(obj.ny + obj.bias_hidden, obj.nz))- 0.5*obj.yz_weight_range;%obj.yz_weight_range* ...
@@ -369,7 +371,7 @@ classdef FBNetwork5 < handle
     
       obj.weights_yzs = obj.yz_weight_range* ...
         (rand(obj.ny + obj.bias_hidden, obj.nzs))- 0.5*obj.yz_weight_range; 
-      obj.weights_zzs = [diag((rand(obj.nzs, 1)*obj.yz_weight_range+1))];
+      obj.weights_zzs = 0*[diag((rand(obj.nzs, 1)*obj.yz_weight_range+1))];
       
 % %       obj.yz_weight_range* ...
 % %         (rand(obj.nzs + obj.bias_hidden, obj.nz))- 0.5*obj.yz_weight_range; 
