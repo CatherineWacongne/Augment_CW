@@ -34,6 +34,9 @@ if (obj.limit_traces)
     wyz_idces = find(abs(obj.wyz_traces) > 1);   
     wyzs_idces = find(abs(obj.wyzs_traces) > 1);  
     wzzs_idces = find(abs(obj.wzzs_traces) > 1);
+    if ~isempty([wxy_idces; wyz_idces; wyzs_idces; wzzs_idces])
+%         keyboard;
+    end
     
     obj.wxy_traces( wxy_idces ) = sign(obj.wxy_traces( wxy_idces ) ) *1;
     obj.wyz_traces( wyz_idces ) = sign(obj.wyz_traces( wyz_idces ) ) *1; 
@@ -55,11 +58,14 @@ sum_t_xd = obj.sum_t_xd;
 if obj.prev_action<=obj.nzs
     w_ja = obj.weights_yzs(n_j_pre(2:end),obj.prev_action);
     w_ma = obj.weights_yzs(n_m_pre,obj.prev_action);
+    
 else
 %      w_ja = obj.weights_yz(n_j_pre(2:end),obj.prev_action-obj.nzs);
      w_ja = obj.weights_yzs(n_j_pre(2:end),obj.prev_action-obj.nzs);
      w_sa = obj.weights_zzs(1:end,obj.prev_action-obj.nzs);
      w_ma = obj.weights_yzs(n_m_pre,obj.prev_action-obj.nzs);
+     w_jam = obj.weights_yz(n_j_pre(2:end),obj.prev_action-obj.nzs);
+     w_mam = obj.weights_yz(n_m_pre,obj.prev_action-obj.nzs);
 end
 % w_sa = obj.weights_zzs(2:end,obj.prev_action);
 
@@ -85,7 +91,7 @@ if obj.prev_action<=obj.nzs % internal action
     
     obj.wxy_traces_now(obj.bias_input+obj.n_inputs*2-1:obj.bias_input+obj.n_inputs*2,obj.ny_normal+1:obj.ny_normal+obj.ny_memory)=0;
 else
-    %FB from the internal unit 
+    %tags from the internal unit action 
     obj.wyzs_traces([n_j_pre n_m_pre], obj.prev_action-obj.nzs) =  obj.wyzs_traces([n_j_pre n_m_pre], obj.prev_action-obj.nzs) + [obj.bias_hidden y_j y_m]';
     
     dPdwkj =  x_k' * (dsig_j .*  w_ja');
@@ -100,23 +106,40 @@ else
     obj.wxy_traces_now(n_d_pre, n_m_post) = obj.wxy_traces_now(n_d_pre, n_m_post) + dPdwdm;
     
     %FB from the motor unit 
+        % going directly from motor
+    obj.wyz_traces([n_j_pre n_m_pre], obj.prev_action-obj.nzs) =  obj.wyz_traces([n_j_pre n_m_pre], obj.prev_action-obj.nzs) + [obj.bias_hidden y_j y_m]';
+    
+    if 1
+    dPdwkj =  x_k' * (dsig_j .*  w_jam');
+    obj.wxy_traces(n_k_pre, n_j_post) = obj.wxy_traces(n_k_pre, n_j_post) + dPdwkj;
+    
+    dPdwij = [1; x_i'] * (dsig_j .*  w_jam');
+    obj.wxy_traces(n_i_pre, n_j_post) = obj.wxy_traces(n_i_pre, n_j_post) + dPdwij;
+    obj.wxy_traces_now([n_k_pre n_i_pre], n_j_post) = obj.wxy_traces([n_k_pre n_i_pre], n_j_post);
+    
+    
+    dPdwdm = sum_t_xd' * (dsig_m .*  w_mam');  
+    obj.wxy_traces_now(n_d_pre, n_m_post) = obj.wxy_traces_now(n_d_pre, n_m_post) + dPdwdm;
+    end    
+        
+    
+        % going through internal 
     mult = [zeros(1,obj.nz)];
     mult(obj.prev_action-obj.nzs) = 1;
     dzzs = mult.*[y_s];
     % for output traces
     obj.wzzs_traces(:, obj.prev_action-obj.nzs) = obj.wzzs_traces(:, obj.prev_action-obj.nzs) + dzzs';
-    obj.wyz_traces([n_j_pre n_m_pre], obj.prev_action-obj.nzs) =  obj.wyz_traces([n_j_pre n_m_pre], obj.prev_action-obj.nzs) + [obj.bias_hidden y_j y_m]';
+%     obj.wyz_traces([n_j_pre n_m_pre], obj.prev_action-obj.nzs) =  obj.wyz_traces([n_j_pre n_m_pre], obj.prev_action-obj.nzs) + [obj.bias_hidden y_j y_m]';
+    if 0
     dsig_s = mult;%dsig_s .*0.5+.5*sign(y_s) .*
     dPdwjs = [1;y_j'] * (dsig_s .* w_sa');
     obj.wyzs_traces(n_j_pre,:) = obj.wyzs_traces(n_j_pre,:)+dPdwjs;
-    
-    
-        % for xy trace
+          % for xy trace
     dPdwij1 = (dsig_s .* w_sa');
     dPdwij1 = (dPdwij1* obj.weights_yzs(n_j_pre(2:end),:)').*dsig_j;
     dPdwij1 = [1; x_i'; x_k']* dPdwij1;
-        %     dPdwij2 = [1; x_i'; x_k']* (dsig_j .* w_ja');
-
+%     dPdwij2 = [1; x_i'; x_k']* (dsig_j .* w_ja');
+% 
     obj.wxy_traces_now([n_i_pre n_k_pre], n_j_post) = obj.wxy_traces_now([n_i_pre n_k_pre], n_j_post) + dPdwij1;%+dPdwij2;
     
     dPdwdm =(dsig_s .* w_sa');
@@ -126,6 +149,8 @@ else
 
 
 %     obj.wxy_traces_now([n_i_pre n_k_pre], n_j_post) = obj.wxy_traces([n_i_pre n_k_pre], n_j_post);
+    
+    end
     obj.wxy_traces_now(obj.bias_input+obj.n_inputs*2-1:obj.bias_input+obj.n_inputs*2,obj.ny_normal+1:obj.ny_normal+obj.ny_memory)=0;
 end
 end

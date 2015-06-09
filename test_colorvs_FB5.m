@@ -19,12 +19,12 @@ fb = 1;
 %% Parameters
 % learning
 gamma  = 0.9;
-beta   = 0.1;%15;
+beta   = 0.01;%15;
 lambda = 0.2;%.20;
 
 % network hidden units
-ny_memory = 6;
-ny_normal = 15;
+ny_memory = 25;
+ny_normal = 60;
 
 % for experiments, fix the random generator:
 % rnd_stream = RandStream('mt19937ar','Seed', seed);
@@ -32,7 +32,7 @@ ny_normal = 15;
 
 %% Figures init
 scrsz = get(0,'ScreenSize');
-h = figure('Position',[1 25 scrsz(3)/2.8 scrsz(4)/2.8]);
+h = figure('Position',[1 25 scrsz(3)/2.8 scrsz(4)/1.1]);
 a = axes();
 set(a,'NextPlot','replace');
 
@@ -84,14 +84,14 @@ if fb
     n.controller = 'max-boltzmann';
     n.exploit_prob = .975;
     
-%     n.instant_transform_fn = 'rectified-linear' ;
+    n.instant_transform_fn = 'rectified-linear' ;
     n.delta_limit = 2;
     n.limit_delta = 1;
 %     n.limit_traces = 1;
     
-    n.setInstantTransform('shifted-sigmoid',2.5);
-    n.setMemoryTransform('shifted-sigmoid',2.5);
-%     n.setInstantTransform() 
+%     n.setInstantTransform('shifted-sigmoid',2.5);
+%     n.setMemoryTransform('shifted-sigmoid',2.5);
+    n.setInstantTransform(n.instant_transform_fn) 
     
     n.input_noise = false;
 %     n.constrain_q_acts = 1;
@@ -144,11 +144,13 @@ t.setTrialsForGeneralisation;
 
 for color_on = [0]
     % Test length:
-    epochs = 50000*40;%0-50000*55*color_on;
-    n_trials = 10000*35;%0-10000*60*color_on;
+    epochs = 50000*50;%0-50000*55*color_on;
+    n_trials = 10000*45;%0-10000*60*color_on;
 
     t.Color_only = color_on;
     trial_res = zeros(1, n_trials);
+    trial_res_color = zeros(1, n_trials);
+    last_trial_end =0;
     
     states = zeros(epochs, 1);
     input_acts = ones(epochs, 26) * -100;
@@ -157,6 +159,7 @@ for color_on = [0]
     deltas = zeros(1,epochs);
     
     correct_perc = zeros(1,epochs);
+    correct_perc_color = zeros(1,epochs);
     trial_choices = zeros(epochs,12);
     
     trial_types = ones(epochs,1) * -1;
@@ -205,11 +208,14 @@ for color_on = [0]
             if trialno<1001
                 %                 correct_perc(i) = t.getPerformance();
                 correct_perc(i) = numel(find(trial_res==1))/trialno;
+                correct_perc_color(i) = numel(find(trial_res_color==1))/trialno;
             else
                 correct_perc(i) = numel(find(trial_res(trialno-1000:trialno)>0))/numel(trial_res(trialno-1000:trialno));
+                correct_perc_color(i) = numel(find(trial_res_color(trialno-1000:trialno)>0))/numel(trial_res_color(trialno-1000:trialno));
             end
             if (trialend)
                 trial_ends(i) = 1;
+                
                 % Check to see if we need to reset the trial statistics
                 % (a task-parameter changed!)
                 if(res_trial_stats)
@@ -222,6 +228,11 @@ for color_on = [0]
 %                      trial_res(trialno) = 0.5;
                 else
                     trial_res(trialno) = -1;
+                end
+                if ~isempty(find(abs(rewards(last_trial_end+1:i)-0.6)<0.05))
+                    trial_res_color(trialno) = 1;
+                else 
+                    trial_res_color(trialno) = -1;
                 end
                 % Total number of trials in this run:
                 trialno = trialno + 1;
@@ -237,21 +248,21 @@ for color_on = [0]
                         t.reward_color = 0;
                          n.beta   = 0.03;
                         tac =trialno;
-                        keyboard;
+%                         keyboard;
                     end
 
                 end
                 
                 if numel(b)>1001 && t.reward_vs == 0
-                    if  numel(find(rewards(b(max(1,trialno-10000):trialno-1)-1)>=0.5))>9000
+                    if  correct_perc_color(i-1) >0.9
                         t.reward_vs = 1;
-                         beta   = 0.03;
+                         beta   = 0.01;
                         
                         tic =trialno;
 %                         keyboard
                     end
                 end
-                
+                last_trial_end = i;
             end
             %%% Update Task
             [new_input, reward, trialend] = t.doStep(action);
@@ -261,7 +272,7 @@ for color_on = [0]
             connection_counter=connection_counter+1;      % number of iterations between redrawing of connections
             if (mod(i,DisplayStepSize) == 0)
                 figure(h);
-                plot(a,1:epochs, rewards,'.',1:epochs,e_rewards,'r.',1:epochs,correct_perc,'k.');ylim([-1.2 2.5])
+                plot(a,1:epochs, rewards,'.',1:epochs,e_rewards,'r.',1:epochs,correct_perc,'k.',1:epochs,correct_perc_color,'g.');ylim([-1.2 2.5])
 %                 plot(a3,1:i, w26(:,1:i),'b',1:i,w51(:,1:i),'r');
                 if connection_counter>connection_update_frequency
                     connection_counter=0;
@@ -272,6 +283,7 @@ for color_on = [0]
                 %                 t.show_DisplayColor(h3,a3,n,new_input,reward,trialno);
                 drawnow;
             end
+            
         end
     end % For epoch
     
@@ -281,4 +293,4 @@ for color_on = [0]
     convergence_res = [converged, c_epoch]
 end
 
-save('150401_resultsColorVS_gen_fb5.mat', 'n', 't', 'gamma', 'beta', 'lambda', 'ny_memory', 'ny_normal', 'trial_types','rewards')
+save('150405bis_resultsColorVS_gen_fb5.mat', 'n', 't', 'gamma', 'beta', 'lambda', 'ny_memory', 'ny_normal', 'trial_types','rewards')

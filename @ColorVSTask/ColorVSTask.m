@@ -84,7 +84,7 @@ classdef ColorVSTask < handle & Task
                 case obj.INTERTRIAL % display fixation
                     %disp('INTERTRIAL')
                     if (obj.counter == obj.intertrial_dur)
-                        obj.pickTrialType();
+                        obj.pickTrialType(); %disp(['cue is col ' num2str(obj.cue_col), ' and at pos ' num2str(obj.cue_pos)]);
                         obj.nwInput(obj.fp_input_index) = 1; % Activate Fixation point
                         
                         obj.STATE = obj.WAITFIXSTATE;
@@ -404,7 +404,7 @@ classdef ColorVSTask < handle & Task
             obj.cueInput = (obj.cue_col-1)*obj.n_pos + obj.cue_pos;
             obj.intTrialType = (obj.cue_col-1)*obj.n_pos + obj.target_pos;
             obj.trialTarget = obj.target_pos+obj.fix_action_index;
-            obj.trialSetExternal = true;
+%             obj.trialSetExternal = true;
         end
         
         function setTrialsForGeneralisation(obj)

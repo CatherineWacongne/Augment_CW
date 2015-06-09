@@ -13,8 +13,9 @@ normal_transformed = obj.hd_transform_normal(activations_normal);
 if obj.prev_action<=obj.nzs
     activation_modul = obj.weights_yzs(1+obj.bias_hidden:obj.ny_normal+obj.bias_hidden+obj.ny_memory,obj.prev_action)' ;
 else
-    activation_modul = obj.weights_zzs(obj.prev_action-obj.nzs,obj.prev_action-obj.nzs).* obj.weights_yzs(1+obj.bias_hidden:obj.ny_normal+obj.bias_hidden+obj.ny_memory,obj.prev_action-obj.nzs)'...
-        +obj.weights_yz(1+obj.bias_hidden:obj.ny_normal+obj.bias_hidden+obj.ny_memory,obj.prev_action-obj.nzs)' ;
+   activation_modul = obj.weights_yzs(1+obj.bias_hidden:obj.ny_normal+obj.bias_hidden+obj.ny_memory,obj.prev_action-obj.nzs)' ;
+%     activation_modul = obj.weights_zzs(obj.prev_action-obj.nzs,obj.prev_action-obj.nzs).* obj.weights_yzs(1+obj.bias_hidden:obj.ny_normal+obj.bias_hidden+obj.ny_memory,obj.prev_action-obj.nzs)'...
+%         +obj.weights_yz(1+obj.bias_hidden:obj.ny_normal+obj.bias_hidden+obj.ny_memory,obj.prev_action-obj.nzs)' ;
     
 end
 

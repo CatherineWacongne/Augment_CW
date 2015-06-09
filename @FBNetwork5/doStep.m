@@ -113,13 +113,13 @@ obj.udelta = reward + (obj.gamma * obj.qas(obj.prev_action)) - obj.previous_qa;
 
 % Set the chosen action, for the environment to evaluate:
 if isinternal
-if obj.prev_action<=obj.nzs
-    action = obj.prev_motor_output;
+    if obj.prev_action<=obj.nzs
+        action = obj.prev_motor_output;
+    else
+        action = obj.Z;
+        obj.prev_motor_output = obj.Z;
+        
+    end
 else
-    action = obj.Z;
-    obj.prev_motor_output = obj.Z;
-
-end
-else 
     action = obj.ZS;
 end
