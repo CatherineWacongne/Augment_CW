@@ -9,18 +9,18 @@ function show_NetworkActivity(obj,h2,a2,draw_connections)
   Size=0.45*XSpacing;
   for i=1:obj.nx
      if abs(obj.X(i)-obj.old_X(i))>0.01
-        if obj.X(i)<0.333
-            R=obj.X(i)*3;
+        if obj.X(i)/2<0.333
+            R=obj.X(i)/2*3;
             G=0;
             B=0;
         else
             R=1;
-            if obj.X(i)<0.667
-               G=(obj.X(i)-0.333)*3;
+            if obj.X(i)/2<0.667
+               G=(obj.X(i)/2-0.333)*3;
                B=0;
             else
                 G=1;
-                B=(obj.X(i)-0.667)*3;
+                B=(obj.X(i)/2-0.667)*3;
             end
         end
         FilCol=[R G B];

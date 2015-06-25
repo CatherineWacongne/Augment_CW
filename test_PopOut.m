@@ -25,8 +25,8 @@ beta   = 0.2;%15;
 lambda = 0.40;
 
 % network hidden units
-ny_memory = 15;
-ny_normal = 30;
+ny_memory = 1;
+ny_normal = 20;
 
 % for experiments, fix the random generator:
 % rnd_stream = RandStream('mt19937ar','Seed', seed);
@@ -503,5 +503,5 @@ end % For epoch
 [converged3, c_epoch3]  = calcConv(trial_res3, 0.1 )
 convergence_res3 = [converged3, c_epoch3]
 
-save('150603_PopOut_gen', 'n')
-save('150603_PopOutComplete_gen.mat', 'n', 't3', 'gamma', 'beta', 'lambda', 'ny_memory', 'ny_normal', 'trial_types3','rewards3')
+save('150615_PopOut_gen', 'n')
+save('150615_PopOutComplete_gen.mat', 'n', 't3', 'gamma', 'beta', 'lambda', 'ny_memory', 'ny_normal', 'trial_types3','rewards3')

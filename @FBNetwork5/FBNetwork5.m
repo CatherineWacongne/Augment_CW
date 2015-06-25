@@ -15,8 +15,8 @@ classdef FBNetwork5 < handle
     population_decay = false;
     mem_decays = 1.0; % Dummy variable for population decay matrix
 
-    xy_weight_range = .1; % Range [-a,a] of initial weights
-    yz_weight_range = .3; % Range [-a,a] of initial weights
+    xy_weight_range = .3; % Range [-a,a] of initial weights
+    yz_weight_range = .1; % Range [-a,a] of initial weights
     
     bias_input = 1; % 1 for a bias unit in input layer, else 0
     bias_hidden = 1; % 1 for a bias unit in hidden layer, else 0
@@ -278,8 +278,8 @@ classdef FBNetwork5 < handle
          obj.hd_transform_normal_deriv = @(acts) .5 - .5 * (acts.^2);
          
        case 'rectified-linear'  
-         obj.hd_transform_normal = @(in) log(1+exp(in-2));
-         obj.hd_transform_normal_deriv = @(in) 1 ./ (1  + exp(-in+2));
+         obj.hd_transform_normal = @(in) 0.02*log(1+exp(50*in));
+         obj.hd_transform_normal_deriv = @(acts) 1 ./ (1  + exp(-50*invsoftplus(50*acts)));
        case 'shifted-sigmoid'
          tau = 2;
          optargin = size(varargin,2);
@@ -362,8 +362,8 @@ classdef FBNetwork5 < handle
       % Set weights for Input->Hidden
       obj.weights_xy = obj.xy_weight_range* ...
         (rand(obj.nx + obj.bias_input, obj.ny))- 0.5*obj.xy_weight_range;
-      obj.weights_xy(obj.n_inputs*2+obj.bias_input+1:end,1:obj.ny_normal) = .5*obj.xy_weight_range* ...
-        (rand(obj.n_inputs, obj.ny_normal))- obj.xy_weight_range;
+%       obj.weights_xy(obj.n_inputs*2+obj.bias_input+1:end,1:obj.ny_normal) = .5*obj.xy_weight_range* ...
+%         (rand(obj.n_inputs, obj.ny_normal))- obj.xy_weight_range;
 
       % Set weights for Hidden->Output
       obj.weights_yz = obj.yz_weight_range*(rand(obj.ny + obj.bias_hidden, obj.nz))- 0.5*obj.yz_weight_range;%obj.yz_weight_range* ...
@@ -388,7 +388,7 @@ classdef FBNetwork5 < handle
 %       obj.weights_yzs(1,:) = obj.weights_yzs(1,:)+obj.yz_weight_range;
       obj.weights_yz(obj.ny_normal+1 +obj.bias_hidden+obj.ny_memory:end, :) = 0; 
       obj.weights_yzs(obj.ny_normal+1 +obj.bias_hidden+obj.ny_memory:end, :) = 0; 
-      obj.weights_xy(obj.bias_input+obj.n_inputs*2-1:obj.bias_input+obj.n_inputs*2,obj.ny_normal+1:obj.ny_normal+obj.ny_memory)=0;
+%       obj.weights_xy(obj.bias_input+obj.n_inputs*2-1:obj.bias_input+obj.n_inputs*2,obj.ny_normal+1:obj.ny_normal+obj.ny_memory)=0;
     end    
   end
  

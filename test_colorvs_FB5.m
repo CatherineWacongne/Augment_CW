@@ -19,12 +19,12 @@ fb = 1;
 %% Parameters
 % learning
 gamma  = 0.9;
-beta   = 0.01;%15;
-lambda = 0.2;%.20;
+beta   = 0.10;%15;
+lambda = 0.3;%.20;
 
 % network hidden units
-ny_memory = 25;
-ny_normal = 60;
+ny_memory = 15;
+ny_normal = 30;
 
 % for experiments, fix the random generator:
 % rnd_stream = RandStream('mt19937ar','Seed', seed);
@@ -108,7 +108,7 @@ else
     n.limit_traces = false;
     n.input_method = 'posnegcells';
     
-    n.n_inputs = 25;%length(t.nwInput);
+    n.n_inputs = 26;%length(t.nwInput);
     n.ny_memory = ny_memory;
     n.ny_normal = ny_normal;
     n.nz =  12; %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -133,9 +133,13 @@ end
 
 %% Task Settings:
 
-
-
-t = ColorVSTask();
+Task2 = 1;
+if Task2
+    t = ColorVSTask2();
+    t.mem_dur = 1;
+else 
+    t = ColorVSTask();
+end
 t.n_genTrials = 1e5;
 t.setTrialsForGeneralisation;
 
@@ -144,8 +148,8 @@ t.setTrialsForGeneralisation;
 
 for color_on = [0]
     % Test length:
-    epochs = 50000*50;%0-50000*55*color_on;
-    n_trials = 10000*45;%0-10000*60*color_on;
+    epochs = 50000*20;%0-50000*55*color_on;
+    n_trials = 20000*15;%0-10000*60*color_on;
 
     t.Color_only = color_on;
     trial_res = zeros(1, n_trials);
@@ -154,8 +158,14 @@ for color_on = [0]
     
     states = zeros(epochs, 1);
     input_acts = ones(epochs, 26) * -100;
-    hidden_acts = ones(epochs, (ny_normal+ny_memory)*2) * -100;
-    q_activations = ones(epochs, n.nz+n.nzs) * -100;
+    
+    if fb
+        hidden_acts = ones(epochs, (ny_normal+ny_memory)*2) * -100;
+        q_activations = ones(epochs, n.nz+n.nzs) * -100;
+    else
+        hidden_acts = ones(epochs, (ny_normal+ny_memory)) * -100;
+        q_activations = ones(epochs, n.nz) * -100;
+    end
     deltas = zeros(1,epochs);
     
     correct_perc = zeros(1,epochs);
@@ -178,7 +188,7 @@ for color_on = [0]
     trialno = 1;
     w51 = zeros(n.ny_normal,epochs);
     w26 = zeros(n.ny_normal,epochs);
-    wy15 = zeros(n.nzs,epochs);
+%     wy15 = zeros(n.nzs,epochs);
     res_trial_stats = false;
     tic = 1;
     t.showdistractors = 1;
@@ -202,9 +212,9 @@ for color_on = [0]
             states(i) = t.STATE;
             trial_types(i) = t.intTrialType;
             rewards(i) = reward; % Reward for previous action
-            w51(:,i) = n.weights_xy(28,1:n.ny_normal)';
+            w51(:,i) = n.weights_xy(26,1:n.ny_normal)';
             w26(:,i) = n.weights_xy(15,1:n.ny_normal)';
-            wy15(:,i)= n.weights_zzs(:,4);
+%             wy15(:,i)= n.weights_zzs(:,4);
             if trialno<1001
                 %                 correct_perc(i) = t.getPerformance();
                 correct_perc(i) = numel(find(trial_res==1))/trialno;
@@ -242,21 +252,33 @@ for color_on = [0]
                         toc = trialno;
                     end
                 end
+                if   ~t.reward_color  && (trialno-tac)>1000
+                    if correct_perc(i-1) > .9
+                       
+                        t.var_mem_dur =1;
+                         n.beta   = 0.01;
+                        tuc =trialno;
+%                         keyboard;
+                    end
+
+                end
+                
                 if t.reward_vs   && (trialno-tic)>10000 && t.reward_color
                     if correct_perc(i-1) > .9
                        
                         t.reward_color = 0;
-                         n.beta   = 0.03;
+                         n.beta   = 0.01;
                         tac =trialno;
 %                         keyboard;
                     end
 
                 end
                 
-                if numel(b)>1001 && t.reward_vs == 0
-                    if  correct_perc_color(i-1) >0.9
+                if numel(b)>30001 && t.reward_vs == 0
+                    if  mean(correct_perc_color(i-10000:i-1)) >0.9
                         t.reward_vs = 1;
-                         beta   = 0.01;
+                        t.reward_color = 0;
+                         n.beta   = 0.03;
                         
                         tic =trialno;
 %                         keyboard
@@ -293,4 +315,4 @@ for color_on = [0]
     convergence_res = [converged, c_epoch]
 end
 
-save('150405bis_resultsColorVS_gen_fb5.mat', 'n', 't', 'gamma', 'beta', 'lambda', 'ny_memory', 'ny_normal', 'trial_types','rewards')
+save('150625_resultsColorVS2_gen_fb5.mat', 'n', 't', 'gamma', 'beta', 'lambda', 'ny_memory', 'ny_normal', 'trial_types','rewards')

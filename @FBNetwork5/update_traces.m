@@ -89,7 +89,7 @@ if obj.prev_action<=obj.nzs % internal action
     dPdwdm = sum_t_xd' * (dsig_m .*  w_ma');  
     obj.wxy_traces_now(n_d_pre, n_m_post) = obj.wxy_traces_now(n_d_pre, n_m_post) + dPdwdm;
     
-    obj.wxy_traces_now(obj.bias_input+obj.n_inputs*2-1:obj.bias_input+obj.n_inputs*2,obj.ny_normal+1:obj.ny_normal+obj.ny_memory)=0;
+%     obj.wxy_traces_now(obj.bias_input+obj.n_inputs*2-1:obj.bias_input+obj.n_inputs*2,obj.ny_normal+1:obj.ny_normal+obj.ny_memory)=0;
 else
     %tags from the internal unit action 
     obj.wyzs_traces([n_j_pre n_m_pre], obj.prev_action-obj.nzs) =  obj.wyzs_traces([n_j_pre n_m_pre], obj.prev_action-obj.nzs) + [obj.bias_hidden y_j y_m]';
@@ -151,7 +151,7 @@ else
 %     obj.wxy_traces_now([n_i_pre n_k_pre], n_j_post) = obj.wxy_traces([n_i_pre n_k_pre], n_j_post);
     
     end
-    obj.wxy_traces_now(obj.bias_input+obj.n_inputs*2-1:obj.bias_input+obj.n_inputs*2,obj.ny_normal+1:obj.ny_normal+obj.ny_memory)=0;
+%     obj.wxy_traces_now(obj.bias_input+obj.n_inputs*2-1:obj.bias_input+obj.n_inputs*2,obj.ny_normal+1:obj.ny_normal+obj.ny_memory)=0;
 end
 end
 

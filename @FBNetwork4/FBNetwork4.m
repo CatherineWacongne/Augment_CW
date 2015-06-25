@@ -1,5 +1,5 @@
 classdef FBNetwork4 < handle
-  %SNETWORK Encapsulates structure, settings and state for an AuGMEnT network
+  %
   
   properties
     %% Network meta-parameters:

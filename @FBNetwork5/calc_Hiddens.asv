@@ -13,15 +13,14 @@ normal_transformed = obj.hd_transform_normal(activations_normal);
 if obj.prev_action<=obj.nzs
     activation_modul = obj.weights_yzs(1+obj.bias_hidden:obj.ny_normal+obj.bias_hidden+obj.ny_memory,obj.prev_action)' ;
 else
-   activation_modul = obj.weights_yzs(1+obj.bias_hidden:obj.ny_normal+obj.bias_hidden+obj.ny_memory,obj.prev_action-obj.nzs)'...
-       +obj.weights_yz(1+obj.bias_hidden:obj.ny_normal+obj.bias_hidden+obj.ny_memory,obj.prev_action-obj.nzs)' ;
+   activation_modul = obj.weights_yzs(1+obj.bias_hidden:obj.ny_normal+obj.bias_hidden+obj.ny_memory,obj.prev_action-obj.nzs)' ;
 %     activation_modul = obj.weights_zzs(obj.prev_action-obj.nzs,obj.prev_action-obj.nzs).* obj.weights_yzs(1+obj.bias_hidden:obj.ny_normal+obj.bias_hidden+obj.ny_memory,obj.prev_action-obj.nzs)'...
 %         +obj.weights_yz(1+obj.bias_hidden:obj.ny_normal+obj.bias_hidden+obj.ny_memory,obj.prev_action-obj.nzs)' ;
     
 end
 % activation_modul = sum(obj.wyzs_traces(1+obj.bias_hidden:obj.ny_normal+obj.bias_hidden+obj.ny_memory,:),2)+sum(obj.wyz_traces(1+obj.bias_hidden:obj.ny_normal+obj.bias_hidden+obj.ny_memory,:),2);
-% activation_modul = sum(obj.wyzs_traces(1+obj.bias_hidden:obj.ny_normal+obj.bias_hidden+obj.ny_memory,:),2)+sum(obj.wyz_traces(1+obj.bias_hidden:obj.ny_normal+obj.bias_hidden+obj.ny_memory,:),2);
-
+activation_modul = sum(obj.wyzs_traces(1+obj.bias_hidden:obj.ny_normal+obj.bias_hidden+obj.ny_memory,:),2)+sum(obj.wyz_traces(1+obj.bias_hidden:obj.ny_normal+obj.bias_hidden+obj.ny_memory,:),2);
+(dsig_j .*  w_ja')
 % memory_transformed = obj.calc_MemoryHiddens();
 
 obj.mem_input = obj.X(obj.n_inputs + 1:obj.n_inputs*2);
@@ -32,7 +31,7 @@ memory_transformed =  obj.hd_transform_normal(obj.Y_ma_total);
 
 
 % modul_transformed = obj.hd_transform_memory(activation_modul);
-obj.Y = [normal_transformed memory_transformed activation_modul ];%modul_transformed
+obj.Y = [normal_transformed memory_transformed activation_modul' ];%modul_transformed
 
 end
 

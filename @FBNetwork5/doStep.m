@@ -72,7 +72,9 @@ obj.delta = reward + (obj.gamma * exp_value) - obj.previous_qa;
 % Limit delta if option is set (default off)
 if (obj.limit_delta && (abs(obj.delta) > obj.delta_limit))
     disp('TD error limit crossed!')
-%     keyboard
+    if (abs(obj.delta) > obj.delta_limit*2)
+    keyboard
+    end
     obj.delta
     obj.delta = sign(obj.delta) * obj.delta_limit;
 end

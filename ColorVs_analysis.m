@@ -8,10 +8,10 @@ trial_types = unique(test);
 
 %%
 figure;imagesc(n.weights_xy(1+[1:26 26 34 42 27 35 43 28 36 44 29 37 45 30 38 46 31 39 47 32 40 48 33 41 49 50],:), [-2 2])
-W_xreord = n.weights_xy(1+[1:25 26 34 42 27 35 43 28 36 44 29 37 45 30 38 46 31 39 47 32 40 48 33 41 49 50],:);
-W_modul = [mean(W_xreord(26:28,1:25));mean(W_xreord(29:31,1:25));mean(W_xreord(32:34,1:25));...
-    mean(W_xreord(35:37,1:25));mean(W_xreord(38:40,1:25));mean(W_xreord(41:43,1:25))...
-    ;mean(W_xreord(44:46,1:25));mean(W_xreord(47:49,1:25))];
+W_xreord = n.weights_xy(1+[1:25 27+[26 34 42 27 35 43 28 36 44 29 37 45 30 38 46 31 39 47 32 40 48 33 41 49 50]],:);
+W_modul = [mean(W_xreord(26:28,1:30));mean(W_xreord(29:31,1:30));mean(W_xreord(32:34,1:30));...
+    mean(W_xreord(35:37,1:30));mean(W_xreord(38:40,1:30));mean(W_xreord(41:43,1:30))...
+    ;mean(W_xreord(44:46,1:30));mean(W_xreord(47:49,1:30))];
 pos_select = zeros(1,25);
 Gpos =  reshape( ones(3,1)*(1:8),[1,24]);
 Gcol =  reshape( ones(8,1)*(1:3),[1,24]);
