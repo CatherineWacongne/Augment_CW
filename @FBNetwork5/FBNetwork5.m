@@ -279,7 +279,7 @@ classdef FBNetwork5 < handle
          
        case 'rectified-linear'  
          obj.hd_transform_normal = @(in) 0.02*log(1+exp(50*in));
-         obj.hd_transform_normal_deriv = @(acts) 1 ./ (1  + exp(-50*invsoftplus(50*acts)));
+         obj.hd_transform_normal_deriv = @(acts) 1-exp(-50*acts);%1 ./ (1  + exp(-invsoftplus(50*acts)));%50
        case 'shifted-sigmoid'
          tau = 2;
          optargin = size(varargin,2);

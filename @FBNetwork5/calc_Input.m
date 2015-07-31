@@ -5,7 +5,7 @@ function calc_Input( obj )
 modul_input =  obj.Y(obj.ny/2+1:obj.ny/2+obj.ny_normal)* obj.weights_xy(obj.bias_input+1:obj.n_inputs+obj.bias_input, 1:obj.ny_normal)'+ ... 
     obj.Y(obj.ny/2+obj.ny_normal+1:end)* obj.weights_xy(obj.n_inputs+obj.bias_input+1:obj.n_inputs*2+obj.bias_input, obj.ny_normal+1:obj.ny_normal+obj.ny_memory)';
 % modul_input = modul_input-mean(modul_input);
-% modul_input(modul_input>1) = 1;
+% modul_input(modul_input>2) = 2;
 
 % modul_transformed = obj.hd_transform_normal((modul_input-mean(modul_input)).*obj.current_input*2+obj.current_input*2);%+obj.current_input*2   obj.hd_transform_normal((modul_input)+obj.current_input);%-mean(modul_input)
 modul_transformed = obj.hd_transform_normal(modul_input.*obj.current_input +obj.current_input );%+obj.current_input*2   obj.hd_transform_normal((modul_input)+obj.current_input);%-mean(modul_input)

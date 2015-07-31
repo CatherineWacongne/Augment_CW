@@ -19,11 +19,11 @@ fb = 1;
 %% Parameters
 % learning
 gamma  = 0.9;
-beta   = 0.10;%15;
-lambda = 0.3;%.20;
+beta   = 0.05;%15;
+lambda = 0.5;%.20;
 
 % network hidden units
-ny_memory = 15;
+ny_memory = 10;
 ny_normal = 30;
 
 % for experiments, fix the random generator:
@@ -277,9 +277,9 @@ for color_on = [0]
                 if numel(b)>30001 && t.reward_vs == 0
                     if  mean(correct_perc_color(i-10000:i-1)) >0.9
                         t.reward_vs = 1;
-                        t.reward_color = 0;
+%                         t.reward_color = 0;
                          n.beta   = 0.03;
-                        
+%                         tac =trialno; %%%%%%%%%%%%
                         tic =trialno;
 %                         keyboard
                     end
@@ -315,4 +315,4 @@ for color_on = [0]
     convergence_res = [converged, c_epoch]
 end
 
-save('150625_resultsColorVS2_gen_fb5.mat', 'n', 't', 'gamma', 'beta', 'lambda', 'ny_memory', 'ny_normal', 'trial_types','rewards')
+save('150715_resultsColorVS2_gen_fb5.mat', 'n', 't', 'gamma', 'beta', 'lambda', 'ny_memory', 'ny_normal', 'trial_types','rewards')
