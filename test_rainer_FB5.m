@@ -24,7 +24,7 @@ lambda = 0.5;%.20;
 
 % network hidden units
 ny_memory = 10;
-ny_normal = 25;
+ny_normal = 15;
 
 % for experiments, fix the random generator:
 % rnd_stream = RandStream('mt19937ar','Seed', seed);
@@ -75,11 +75,11 @@ if fb
     n.limit_traces = false;
     n.input_method = 'modulcells_on_memo';
     
-    n.n_inputs = 26;%length(t.nwInput);
+    n.n_inputs = 25;%length(t.nwInput);
     
     n.ny_normal = ny_normal;
     n.ny_memory = ny_memory;
-    n.nz =  12; %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    n.nz =  6; %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     n.nzs = n.nz;
     n.controller = 'max-boltzmann';
     n.exploit_prob = .975;
@@ -108,7 +108,7 @@ else
     n.limit_traces = false;
     n.input_method = 'posnegcells';
     
-    n.n_inputs = 26;%length(t.nwInput);
+    n.n_inputs = 25;%length(t.nwInput);
     n.ny_memory = ny_memory;
     n.ny_normal = ny_normal;
     n.nz =  12; %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -133,31 +133,28 @@ end
 
 %% Task Settings:
 
-Task2 = 1;
-if Task2
-    t = ColorVSTask2();
-    t.mem_dur = 1;
-else 
-    t = ColorVSTask();
-end
-t.n_genTrials = 1e5;
+t = RainerTask();
+t.mem_dur = 1;
+
+t.n_genTrials = 100;
 t.setTrialsForGeneralisation;
+t.Position_only = 1;
 
 % Reset all variables:
 % n_trials (estimated number of completed trials)
 
 for color_on = [0]
     % Test length:
-    epochs = 50000*30;%0-50000*55*color_on;
-    n_trials = 20000*25;%0-10000*60*color_on;
+    epochs = 50000*10;%0-50000*55*color_on;
+    n_trials = 20000*15;%0-10000*60*color_on;
 
-    t.Color_only = color_on;
+%     t.Color_only = color_on;
     trial_res = zeros(1, n_trials);
     trial_res_color = zeros(1, n_trials);
     last_trial_end =0;
     
     states = zeros(epochs, 1);
-    input_acts = ones(epochs, 26) * -100;
+    input_acts = ones(epochs, n.n_inputs) * -100;
     
     if fb
         hidden_acts = ones(epochs, (ny_normal+ny_memory)*2) * -100;
@@ -170,7 +167,7 @@ for color_on = [0]
     
     correct_perc = zeros(1,epochs);
     correct_perc_color = zeros(1,epochs);
-    trial_choices = zeros(epochs,12);
+    trial_choices = zeros(epochs,6);
     
     trial_types = ones(epochs,1) * -1;
     trial_ends = zeros(epochs, 1);
@@ -191,9 +188,9 @@ for color_on = [0]
 %     wy15 = zeros(n.nzs,epochs);
     res_trial_stats = false;
     tic = 1;
-    t.showdistractors = 1;
-    t.reward_vs = 0;
-    t.reward_color = 1;
+%     t.showdistractors = 1;
+%     t.reward_vs = 0;
+    t.reward_position = 1;
     for i=1:epochs % an epoch is a point in time, a trial contains multiple epochs (defined by the CAPITALSTATES properties of the task)
         if ~ProgramReady
             
@@ -247,26 +244,22 @@ for color_on = [0]
                 % Total number of trials in this run:
                 trialno = trialno + 1;
                 b = find(trial_ends==1);
-                if t.reward_vs && ~t.reward_color  && (trialno-tac)>100 
-                    if correct_perc(i-1) > .9
-                        toc = trialno;
-                    end
-                end
-                if   ~t.reward_color  && (trialno-tac)>1000
+                
+                if   ~t.reward_position  && (trialno-tac)>1000
                     if correct_perc(i-1) > .9
                        
-                        t.var_mem_dur =1;
-                         n.beta   = 0.01;
+                        
+                        n.beta   = 0.01;
                         tuc =trialno;
 %                         keyboard;
                     end
 
                 end
                 
-                if t.reward_vs   && (trialno-tic)>10000 && t.reward_color
+                if  (trialno-tic)>10000 && t.reward_position
                     if correct_perc(i-1) > .9
                        
-                        t.reward_color = 0;
+                        t.reward_position = 0;
                          n.beta   = 0.01;
                         tac =trialno;
 %                         keyboard;
@@ -274,11 +267,11 @@ for color_on = [0]
 
                 end
                 
-                if numel(b)>30001 && t.reward_vs == 0
-                    if  mean(correct_perc_color(i-10000:i-1)) >0.9
-                        t.reward_vs = 1;
+                if numel(b)>10001 && t.Position_only == 1
+                    if  mean(correct_perc_color(i-1000:i-1)) >0.9
+                        t.Position_only = 0;
 %                         t.reward_color = 0;
-                         n.beta   = 0.025;
+                         n.beta   = 0.03;
 %                         tac =trialno; %%%%%%%%%%%%
                         tic =trialno;
 %                         keyboard

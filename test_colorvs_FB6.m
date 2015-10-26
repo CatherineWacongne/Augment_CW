@@ -19,11 +19,11 @@ fb = 1;
 %% Parameters
 % learning
 gamma  = 0.9;
-beta   = 0.05;%15;
-lambda = 0.5;%.20;
+beta   = 0.07;%15;
+lambda = 0.2;%.20;
 
 % network hidden units
-ny_memory = 10;
+ny_memory = 15;
 ny_normal = 25;
 
 % for experiments, fix the random generator:
@@ -71,7 +71,7 @@ set(a3,'NextPlot','replace');
 %% Network Settings:
 %
 if fb
-    n = FBNetwork5();
+    n = FBNetwork6();
     n.limit_traces = false;
     n.input_method = 'modulcells_on_memo';
     
@@ -80,7 +80,7 @@ if fb
     n.ny_normal = ny_normal;
     n.ny_memory = ny_memory;
     n.nz =  12; %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    n.nzs = n.nz;
+    
     n.controller = 'max-boltzmann';
     n.exploit_prob = .975;
     
@@ -149,7 +149,7 @@ t.setTrialsForGeneralisation;
 for color_on = [0]
     % Test length:
     epochs = 50000*30;%0-50000*55*color_on;
-    n_trials = 20000*25;%0-10000*60*color_on;
+    n_trials = 20000*20;%0-10000*60*color_on;
 
     t.Color_only = color_on;
     trial_res = zeros(1, n_trials);
@@ -159,13 +159,10 @@ for color_on = [0]
     states = zeros(epochs, 1);
     input_acts = ones(epochs, 26) * -100;
     
-    if fb
-        hidden_acts = ones(epochs, (ny_normal+ny_memory)*2) * -100;
-        q_activations = ones(epochs, n.nz+n.nzs) * -100;
-    else
-        hidden_acts = ones(epochs, (ny_normal+ny_memory)) * -100;
-        q_activations = ones(epochs, n.nz) * -100;
-    end
+   
+    hidden_acts = ones(epochs, (ny_normal+ny_memory)) * -100;
+    q_activations = ones(epochs, n.nz) * -100;
+
     deltas = zeros(1,epochs);
     
     correct_perc = zeros(1,epochs);
@@ -256,7 +253,7 @@ for color_on = [0]
                     if correct_perc(i-1) > .9
                        
                         t.var_mem_dur =1;
-                         n.beta   = 0.01;
+                         n.beta   = 0.05;
                         tuc =trialno;
 %                         keyboard;
                     end
@@ -264,21 +261,21 @@ for color_on = [0]
                 end
                 
                 if t.reward_vs   && (trialno-tic)>10000 && t.reward_color
-                    if correct_perc(i-1) > .9
+                    if mean(correct_perc(i-100000:i-1)) > .9
                        
                         t.reward_color = 0;
-                         n.beta   = 0.01;
+                         n.beta   = 0.05;
                         tac =trialno;
 %                         keyboard;
                     end
 
                 end
                 
-                if numel(b)>30001 && t.reward_vs == 0
+                if numel(b)>20001 && t.reward_vs == 0
                     if  mean(correct_perc_color(i-10000:i-1)) >0.9
                         t.reward_vs = 1;
 %                         t.reward_color = 0;
-                         n.beta   = 0.025;
+                         n.beta   = 0.05;
 %                         tac =trialno; %%%%%%%%%%%%
                         tic =trialno;
 %                         keyboard

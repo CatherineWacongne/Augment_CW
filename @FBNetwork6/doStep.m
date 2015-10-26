@@ -1,5 +1,5 @@
 function [action] = doStep(obj, input, reward, reset_traces )
-isinternal = 1;
+
 %DOSTEP Simulate one epoch of the network
 
 % Set network input:
@@ -39,7 +39,7 @@ end
 % obj.Y = 0*obj.Y;
 % obj.calc_Input();% sets input but not xk
 
-obj.calc_Hiddens(); % sets ym
+% obj.calc_Hiddens(); % sets ym
 
 obj.calc_Input();% sets input incl xk
 
@@ -98,8 +98,8 @@ obj.weights_xy = obj.weights_xy + obj.beta * obj.fdelta * obj.wxy_traces_now;
 % if reward>0; keyboard;end
 % Hidden to output:
 obj.weights_yz = obj.weights_yz + obj.beta * obj.fdelta * obj.wyz_traces;
-obj.weights_yzs = obj.weights_yzs + obj.beta * obj.fdelta * obj.wyzs_traces;
-% obj.weights_zzs = obj.weights_zzs + obj.beta * obj.fdelta * obj.wzzs_traces;
+obj.weights_yx = obj.weights_yx + obj.beta * obj.fdelta * obj.wyx_traces;
+
 % Update eligibility traces
 
 if (reset_traces) % Note that the correct place to reset traces is essential!
@@ -117,14 +117,6 @@ obj.previous_critic_val = obj.qas(obj.prev_action);
 obj.udelta = reward + (obj.gamma * obj.qas(obj.prev_action)) - obj.previous_qa;
 
 % Set the chosen action, for the environment to evaluate:
-if isinternal
-    if obj.prev_action<=obj.nzs
-        action = obj.prev_motor_output;
-    else
-        action = obj.Z;
-        obj.prev_motor_output = obj.Z;
-        
-    end
-else
-    action = obj.ZS;
-end
+
+action = obj.Z;
+
