@@ -1,10 +1,10 @@
 classdef ColorVSTask2 < handle & Task
     %  Visual Search Task with pretraining:
-%     1/ color task alone on 1st memo time step
-%     2/ color task + VS with 1 time step memo
-%     3/ VS task alone with 1 time step memo
-%     4/ VS task with multiple time step memo
-%     
+    %     1/ color task alone on 1st memo time step
+    %     2/ color task + VS with 1 time step memo
+    %     3/ VS task alone with 1 time step memo
+    %     4/ VS task with multiple time step memo
+    %
     properties(SetAccess=protected, GetAccess=public)
         
         intTrialType = 0;    % (cue_col-1)*n_pos + cue_pos (= index of input =1 )
@@ -161,67 +161,67 @@ classdef ColorVSTask2 < handle & Task
                             obj.cur_reward = obj.cur_reward + obj.fix_reward;
                             obj.resetCounter();
                             
-%                             obj.nwInput = zeros(1,obj.n_col*obj.n_pos+2);  % turns everything off.
-                           
-                                obj.STATE = obj.SEQSTATE;
-                                obj.nwInput = 0*obj.nwInput;
-                                obj.nwInput(obj. fp_input_index) = 1;
-                                
-%                                 for d = 1:8
-%                                     if obj.display_col(d)>0
-%                                         if obj.showdistractors
-%                                             obj.nwInput((obj.display_col(d)-1)*obj.n_pos + d)=1; % bring the targets
-%                                         else
-%                                             if obj.display_col(d)==obj.cue_col
-%                                                 obj.nwInput((obj.display_col(d)-1)*obj.n_pos + d)=1;
-%                                             end
-%                                         end
-%                                     end
-%                                 end
-                                
+                            %                             obj.nwInput = zeros(1,obj.n_col*obj.n_pos+2);  % turns everything off.
+                            
+                            obj.STATE = obj.SEQSTATE;
+                            obj.nwInput = 0*obj.nwInput;
+                            obj.nwInput(obj. fp_input_index) = 1;
+                            
+                            %                                 for d = 1:8
+                            %                                     if obj.display_col(d)>0
+                            %                                         if obj.showdistractors
+                            %                                             obj.nwInput((obj.display_col(d)-1)*obj.n_pos + d)=1; % bring the targets
+                            %                                         else
+                            %                                             if obj.display_col(d)==obj.cue_col
+                            %                                                 obj.nwInput((obj.display_col(d)-1)*obj.n_pos + d)=1;
+                            %                                             end
+                            %                                         end
+                            %                                     end
+                            %                                 end
+                            
                         else
                             obj.incrCounter();
                         end
                     end
                 case obj.SEQSTATE
                     if obj.reward_color
-                    if (networkAction(obj.cue_col) ~= 1)
-                        disp('Failure')
-                        obj.stateReset();
-                    else
-                        if( obj.counter == obj.fix_dur)
-                            obj.cur_reward = obj.cur_reward + 3*obj.fix_reward; % second small reward for color task
-                            disp('Color Reward !')
-                            obj.resetCounter();
-                            obj.nwInput = zeros(1,obj.n_col*obj.n_pos+2);
-                            for d = 1:8
-                                if obj.display_col(d)>0
-                                    if obj.showdistractors
-                                        obj.nwInput((obj.display_col(d)-1)*obj.n_pos + d)=1; % bring the targets
-                                    else
-                                        if obj.display_col(d)==obj.cue_col
-                                            obj.nwInput((obj.display_col(d)-1)*obj.n_pos + d)=1; 
+                        if (networkAction(obj.cue_col) ~= 1)
+                            disp('Failure')
+                            obj.stateReset();
+                        else
+                            if( obj.counter == obj.fix_dur)
+                                obj.cur_reward = obj.cur_reward + 3*obj.fix_reward; % second small reward for color task
+                                disp('Color Reward !')
+                                obj.resetCounter();
+                                obj.nwInput = zeros(1,obj.n_col*obj.n_pos+2);
+                                for d = 1:8
+                                    if obj.display_col(d)>0
+                                        if obj.showdistractors
+                                            obj.nwInput((obj.display_col(d)-1)*obj.n_pos + d)=1; % bring the targets
+                                        else
+                                            if obj.display_col(d)==obj.cue_col
+                                                obj.nwInput((obj.display_col(d)-1)*obj.n_pos + d)=1;
+                                            end
                                         end
                                     end
                                 end
-                            end 
-                            if obj.Color_only
-                                obj.stateReset();
-                            else 
-                                obj.STATE = obj.GOSTATE;
+                                if obj.Color_only
+                                    obj.stateReset();
+                                else
+                                    obj.STATE = obj.GOSTATE;
+                                end
+                            else
+                                obj.incrCounter();
                             end
-                        else
-                            obj.incrCounter();
                         end
-                    end 
                     else
-                         if (~all(networkAction == fixation)) % Trial failed
-                             disp('Broke Fixation')
-                             obj.stateReset();
-                        
-                        
-                         elseif( obj.counter == obj.fix_dur)
-%                             obj.cur_reward = obj.cur_reward + 3*obj.fix_reward; % second small reward for color task
+                        if (~all(networkAction == fixation)) % Trial failed
+                            disp('Broke Fixation')
+                            obj.stateReset();
+                            
+                            
+                        elseif( obj.counter == obj.fix_dur)
+                            %                             obj.cur_reward = obj.cur_reward + 3*obj.fix_reward; % second small reward for color task
                             disp('No more Color Reward !')
                             obj.resetCounter();
                             obj.nwInput = zeros(1,obj.n_col*obj.n_pos+2);
@@ -231,14 +231,14 @@ classdef ColorVSTask2 < handle & Task
                                         obj.nwInput((obj.display_col(d)-1)*obj.n_pos + d)=1; % bring the targets
                                     else
                                         if obj.display_col(d)==obj.cue_col
-                                            obj.nwInput((obj.display_col(d)-1)*obj.n_pos + d)=1; 
+                                            obj.nwInput((obj.display_col(d)-1)*obj.n_pos + d)=1;
                                         end
                                     end
                                 end
-                            end 
+                            end
                             if obj.Color_only
                                 obj.stateReset();
-                            else 
+                            else
                                 obj.STATE = obj.GOSTATE;
                             end
                         else
@@ -251,10 +251,10 @@ classdef ColorVSTask2 < handle & Task
                     if (obj.counter <= obj.max_dur) % Trial expired?
                         if obj.reward_vs ==0
                             
-%                             if find(networkAction,1)>4
-%                                 obj.cur_reward = obj.cur_reward + obj.fin_reward;
-%                                 disp('Other Resp Reward!')
-%                             end
+                            %                             if find(networkAction,1)>4
+                            %                                 obj.cur_reward = obj.cur_reward + obj.fin_reward;
+                            %                                 disp('Other Resp Reward!')
+                            %                             end
                             obj.stateReset();
                             
                         elseif (~all(networkAction == fixation))  % Broke Fixation
@@ -412,7 +412,7 @@ classdef ColorVSTask2 < handle & Task
             obj.cueInput = (obj.cue_col-1)*obj.n_pos + obj.cue_pos;
             obj.intTrialType = (obj.cue_col-1)*obj.n_pos + obj.target_pos;
             obj.trialTarget = obj.target_pos+obj.fix_action_index;
-%             obj.trialSetExternal = true;
+            %             obj.trialSetExternal = true;
         end
         
         function setTrialsForGeneralisation(obj)
@@ -433,7 +433,7 @@ classdef ColorVSTask2 < handle & Task
                                                     ind=ind+1;
                                                     
                                                 end;
-                                            end  ;          
+                                            end  ;
                                         end;
                                     end;
                                 end;
