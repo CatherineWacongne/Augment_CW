@@ -1,5 +1,4 @@
 function [action] = doStep(obj, input, reward, reset_traces )
-isinternal = 0;
 
 %DOSTEP Simulate one epoch of the network
 
@@ -26,27 +25,8 @@ if obj.check_derivatives % if trace checking; keep a copy of the network at begi
 end
 
 % Compute X
-% Note that X *includes* the on and off cells
-% (or sustained cells is 'old' method is used) 
-% if (strcmp(obj.input_method, 'modulcells'))
-%   d_pos = [obj.current_input - obj.prev_input];
-%   d_pos( d_pos < 0) = 0;
-%   d_neg = [obj.current_input - obj.prev_input];
-%   d_neg( d_neg > 0) = 0;
-%   obj.X = [obj.current_input d_pos abs(d_neg)];
-% % elseif (strcmp(obj.input_method, 'old'))
-% %   obj.X = [obj.current_input (obj.current_input .* ~(obj.current_input == obj.prev_input))];
-% end
 
-
-
-% Calculate hidden layer activations (sets Y)
-% obj.Y = 0*obj.Y;
-% obj.calc_Input();% sets input but not xk
-
-% obj.calc_Hiddens(); % sets ym
-
-obj.calc_Input();% sets input incl xk
+obj.calc_Input();% sets input 
 
 obj.calc_Hiddens();% sets yj
 
@@ -77,7 +57,7 @@ end
 
 % Calculate TD-error:
 obj.delta = reward + (obj.gamma * exp_value) - obj.previous_qa;
-% if reward >0; keyboard;end
+
 % Limit delta if option is set (default off)
 if (obj.limit_delta && (abs(obj.delta) > obj.delta_limit))
     disp('TD error limit crossed!')
@@ -88,28 +68,22 @@ if (obj.limit_delta && (abs(obj.delta) > obj.delta_limit))
     obj.delta = sign(obj.delta) * obj.delta_limit;
 end
 
-% Calculate F(Delta) transform:
-% This is not used in AuGMEnT
-%obj.fdelta = obj.calc_fdelta();
 
 obj.fdelta = obj.delta;
 
 % Update weights:
 
-% Input to hidden:
 for f = 1:obj.n_hidden_features
+    
+    % Input to hidden:
     obj.weights_xy{f} = obj.weights_xy{f} + obj.beta * obj.fdelta * obj.wxy_traces_now{f};
     obj.weights_yx{f} = obj.weights_yx{f} + obj.beta * obj.fdelta * obj.wyx_traces{f};
-    % if max(obj.weights_xy(51,:))>5
-    %     keyboard;
-    % end
-    % if reward>0; keyboard;end
+
     % Hidden to output:
-    obj.weights_yz{f} = obj.weights_yz{f} + obj.beta * obj.fdelta * obj.wyz_traces{f};
-    % obj.weights_yzs = obj.weights_yzs + obj.beta * obj.fdelta * obj.wyzs_traces;
-    % obj.weights_zzs = obj.weights_zzs + obj.beta * obj.fdelta * obj.wzzs_traces;
-    % Update eligibility traces
+    obj.weights_yz{f} = obj.weights_yz{f} + obj.beta * obj.fdelta * obj.wyz_traces{f};  
 end
+
+% Update eligibility traces
 if (reset_traces) % Note that the correct place to reset traces is essential!
     obj.resetTraces();
 else % No point in updating traces if there is a reset afterwards
@@ -128,14 +102,5 @@ obj.previous_critic_val = obj.qas(obj.prev_action);
 obj.udelta = reward + (obj.gamma * obj.qas(obj.prev_action)) - obj.previous_qa;
 
 % Set the chosen action, for the environment to evaluate:
-if isinternal
-    if obj.prev_action<=obj.nzs
-        action = obj.prev_motor_output;
-    else
-        action = obj.Z;
-        obj.prev_motor_output = obj.Z;
-        
-    end
-else
-    action = obj.Z;
-end
+action = obj.Z;
+

@@ -3,10 +3,11 @@ classdef CTTask < handle & Task
     
     
     properties(SetAccess=protected, GetAccess=public)
-        grid_size = 5;
+        grid_size = 6;
         
         
         trialTarget = 0;
+        trialDistr = 0;
         target_display = zeros(1,4*4*3)
         pos_on_curve = 0;
         
@@ -21,6 +22,7 @@ classdef CTTask < handle & Task
         curve_length = 2;
         active_tracing = 1;
         actual_tracing = 1;
+        turnoff_fp = 1;
     end
     
     methods
@@ -32,7 +34,7 @@ classdef CTTask < handle & Task
             obj.stateReset();
             obj.curve_length = 2;
             obj.distr_curve_on = 0;
-            obj.n_actions = 26;
+            obj.n_actions = 37;
             obj.active_tracing = 1;
             obj.actual_tracing = 1;
         end
@@ -110,7 +112,7 @@ classdef CTTask < handle & Task
                                     obj.actual_tracing = 1;
                                     obj.nwInput(1) = 0;
                                 else
-                                    if rand<0
+                                    if rand<1
                                         obj.actual_tracing = 0;
                                         obj.nwInput(1) = 1;
                                     else
@@ -189,34 +191,40 @@ classdef CTTask < handle & Task
                         else % only final saccade
                             if (networkAction(1) ~= 1)  % Broke Fixation
                                 
-                                if (find(networkAction)-1)== obj.trialTarget(end) && obj.counter>=obj.curve_length
+                                if (find(networkAction)-1)== obj.trialTarget(end) && obj.counter>=floor(obj.curve_length/2);%obj.curve_length-1
                                     disp('Final reward!')
                                     obj.correct_trials = obj.correct_trials + 1;
                                     
-                                    obj.cur_reward = obj.cur_reward + obj.fin_reward*2;
+                                    obj.cur_reward = obj.cur_reward + obj.fin_reward;
                                     obj.stateReset();
-                                else
+%                                 elseif obj.counter<obj.curve_length/2;
+%                                     disp('Early Resp')
+%                                     obj.stateReset();
+                                else 
                                     disp('Failure')
                                     obj.stateReset();
                                 end
                             else
                                 disp('Holding Fix')
-                                obj.cur_reward = obj.cur_reward + obj.fix_reward/2;
+%                                 obj.cur_reward = obj.cur_reward + obj.fix_reward/2;
                                 obj.incrCounter();
-                                if obj.counter==obj.curve_length
+                                if obj.counter==floor(obj.curve_length/2);%obj.curve_length-1
                                     disp(' Fix Reward 2')
                                     obj.cur_reward = obj.cur_reward + obj.fix_reward;
                                     %                                 keyboard;
-                                    obj.nwInput(1) = 0;
+                                    if obj.turnoff_fp%                                    
+                                        obj.nwInput(1) = 0;
+                                    end
+                                    
                                 end
-                                if obj.counter>obj.curve_length
-                                    disp('Failure')
+                                if obj.counter>=obj.curve_length
+                                    disp('LengthOut')
                                     obj.stateReset();
                                 end
                             end
                         end
                     else
-                        disp('Failure')
+                        disp('TimeOut')
                         obj.stateReset();
                     end
             end
@@ -284,6 +292,7 @@ classdef CTTask < handle & Task
                 end
             end
             obj.trialTarget = target_curve;
+            obj.trialDistr = distr_curve;
             obj.target_display = targ_display;
             obj.trialSetExternal = true;
             
@@ -301,6 +310,12 @@ classdef CTTask < handle & Task
                     poss_continuation = find(W(target_curve(end),:));
                     for n = 1:numel(target_curve)
                         poss_continuation(poss_continuation==target_curve(n)) = [];
+                        if n<numel(target_curve)
+                            lat_pos = find(W(target_curve(n),:));
+                            for p = 1:numel(lat_pos)
+                                poss_continuation(poss_continuation==lat_pos(p)) = [];
+                            end
+                        end
                     end
                     target_curve = [target_curve poss_continuation(randi(numel(poss_continuation)))];
                 end
@@ -326,6 +341,12 @@ classdef CTTask < handle & Task
                             else
                                 distr_curve = [distr_curve poss_cont(randi(numel(poss_cont)))];
                                 free_pos(free_pos==distr_curve(end))=[];
+                                
+                                lat_pos = find(W(distr_curve(end-1),:));
+                                for p = 1:numel(lat_pos)
+                                    free_pos(free_pos==lat_pos(p)) = [];
+                                end
+                                
                                 if numel(distr_curve)==obj.curve_length
                                     distr_curve_ok=1;
                                 end
@@ -361,6 +382,7 @@ classdef CTTask < handle & Task
             end
             
             obj.trialTarget = target_curve;
+            obj.trialDistr = distr_curve;
             obj.target_display = targ_display;
             
             

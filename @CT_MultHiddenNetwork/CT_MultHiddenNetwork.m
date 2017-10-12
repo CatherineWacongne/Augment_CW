@@ -1,13 +1,12 @@
 classdef CT_MultHiddenNetwork < handle
-    %Network with FB on a grid for curve tracing
+    %Network with FB on a grid for curve tracing - with weight sharing and
+    %multiple feature layers in the hidden layer. No memory units
     
     properties
         %% Network meta-parameters:
         
         beta  = 0.01; % Learning rate synapses
         gamma  = 0.9; % Discounting of future rewards
-        %lambda_xy = 0.0; % Decay of eligibility traces (input->hidden)
-        %lambda_yz = 0.0; %  Decay of eligibility traces (hidden->output)
         lambda = 0.3; % Decay of non-memory eligibility traces
         lambda_mem = 1.0; % Decay of eligibility traces memory neurons
         lambda_mem_arr = 0; % For population of different decays.
@@ -18,15 +17,11 @@ classdef CT_MultHiddenNetwork < handle
         population_decay = false;
         mem_decays = 1.0; % Dummy variable for population decay matrix
         
-        xy_weight_range = .15; % Range [-a,a] of initial weights
-        yz_weight_range = .15; % Range [-a,a] of initial weights
+        xy_weight_range = .25; % Range [-a,a] of initial weights
+        yz_weight_range = .25; % Range [-a,a] of initial weights
         
         bias_input = 1; % 1 for a bias unit in input layer, else 0
         bias_hidden = 1; % 1 for a bias unit in hidden layer, else 0
-        
-        % Not used in AuGMEnT but left for legacy purposes (used in \calc_fdelta)
-        min_pch = 0.1; % Minimal choice probability as used in calc_fdelta
-        minfact = 3;   % Multiplication factor for negative deltas (fdelta)
         
         input_noise = false; % Determines whether noise should be added to input
         noise_sigma = 0.1; % Standard deviation of Gaussian input noise
@@ -56,13 +51,10 @@ classdef CT_MultHiddenNetwork < handle
         n_inputs = 47;
         
         nx = 15; % Number of input layer neurons;
-        
         ny_normal = 17; % Number of standard hidden layer neurons
-        %ny_memory = grid_size^2+1; % Number of memory hidden layer neurons
         ny; % Total number of hidden neurons
-        
         nz = 17; % Number of motor output neurons
-        %     nzs = 3; % Number of sensory output neurons
+        
         
         % Hidden transformation functions:
         mem_transform_fn = 'shifted-sigmoid';
@@ -81,26 +73,22 @@ classdef CT_MultHiddenNetwork < handle
         weights_xy; % Weights from input to hidden layer
         weights_yx; % Weights from input to hidden layer
         weights_yz; % Weights from hidden to output layer
-        %     weights_yzs;
-        %     weights_zzs;
+        
         wxy_class;
         wyx_class;
         wyz_class;
         
-%         weights_xy_handle; % Handles for drawing
-%         weights_yz_handle; % Handles for drawing
         
         wxy_traces;  % Eligibility traces input synapses
         wyx_traces;
         wxy_traces_now; % Current change in eligibility due to network activations?
         
         wyz_traces;  % Eligibility traces hidden synapses
-        %     wyzs_traces;
-        %     wzzs_traces;
         limit_traces = false;
         
         X; % Current input layer activations
         Y; % Current hidden layer activations
+        prev_x;
         prev_y;
         
         Y_ma_total;   % Total non-transformed activations of memory neurons
@@ -120,7 +108,7 @@ classdef CT_MultHiddenNetwork < handle
         udelta = 0; % Current uncorrected TD-error
         previous_critic_val = 0; % Expectation critic for previous timestep
         
-        mem_input; % Stores inputs calculated for memory hiddens
+        %         mem_input; % Stores inputs calculated for memory hiddens
         % (without sustained inputs).
         %     sum_t_xd;
         
@@ -177,11 +165,9 @@ classdef CT_MultHiddenNetwork < handle
         
         % end of declarations for externally defined methods
         
-         
-        
         
         function resetTraces(obj)
-            % Reset all weight traces, and memory neurons.
+            % Reset all weight traces
             
             % Reset weight traces (all zero)
             for f = 1:obj.n_hidden_features
@@ -190,12 +176,6 @@ classdef CT_MultHiddenNetwork < handle
                 obj.wyx_traces{f} = zeros( obj.ny, obj.nx );
                 obj.wyz_traces{f} = zeros(obj.ny + obj.bias_hidden, obj.nz);
             end
-            %       obj.wyzs_traces= zeros(obj.ny + obj.bias_hidden, obj.nzs);
-            %       obj.wzzs_traces= zeros(obj.nzs , obj.nz);
-            
-            % TECHNICALLY, this is not a trace...
-            %       obj.Y_ma_total = zeros(1, obj.ny_memory);
-            %       obj.sum_t_xd = zeros(1, obj.n_inputs);
             
             obj.prev_input = zeros(1,obj.n_inputs);
             obj.previous_qa = 0;
@@ -205,8 +185,6 @@ classdef CT_MultHiddenNetwork < handle
         function init_network(obj)
             
             % Initializer builds initial network
-            
-            
             
             if (strcmp(obj.input_method, 'modulcells_on_reg'))
                 % Set dummy activations:
@@ -224,20 +202,13 @@ classdef CT_MultHiddenNetwork < handle
                 obj.Y{f} = zeros(1,obj.ny);
             end
             obj.Z = zeros(1,obj.nz);
-            %       obj.ZS = zeros(1,obj.nzs);
             
             obj.old_X = -ones(1,obj.nx);
-            
             obj.old_Y = -ones(1,obj.ny);
             obj.old_Z = -ones(1,obj.nz);
-            %       obj.old_ZS = -ones(1,obj.nzs);
-            obj.old_qas = -ones(1,obj.nz); %+obj.nzs
+            obj.old_qas = -ones(1,obj.nz);
             
-%             obj.weights_xy_handle = -ones(obj.nx+1,obj.ny); % Handles for drawing
-%             obj.weights_yz_handle = -ones(obj.ny+1,obj.nz); % Handles for drawing
-            
-            %       obj.Y_ma_total = zeros(1, obj.ny_memory);
-            %       obj.Y_ma_current = zeros(1, obj.ny_memory);
+            %
             
             % Set the hidden unit transformations:
             obj.setInstantTransform(obj.instant_transform_fn, obj.instant_transform_tau);
@@ -393,7 +364,7 @@ classdef CT_MultHiddenNetwork < handle
             W = abs(W)<1.001;
             
             
-            
+            c = 0;
             
             
             
@@ -413,7 +384,7 @@ classdef CT_MultHiddenNetwork < handle
                 end
                 if obj.use_class_connections
                     for conn_type = 1:12
-                        obj.weights_xy{f}(obj.wxy_class==conn_type) = mean(obj.weights_xy{f}(obj.wxy_class==conn_type));
+                        obj.weights_xy{f}(obj.wxy_class==conn_type) = (c + rand) * obj.xy_weight_range;%mean(obj.weights_xy{f}(obj.wxy_class==conn_type));
                     end
                 end
                 
@@ -434,64 +405,27 @@ classdef CT_MultHiddenNetwork < handle
                 if obj.use_class_connections
                     for conn_type = 1:12
                         if mod(conn_type,2)==1
-                            obj.weights_yx{f}(obj.wyx_class==conn_type) = mean(obj.weights_yx{f}(obj.wyx_class==conn_type));%obj.weights_yx(obj.wyx_class==conn_type) = 0;
+                            obj.weights_yx{f}(obj.wyx_class==conn_type) = (c + rand) * obj.xy_weight_range;%mean(obj.weights_yx{f}(obj.wyx_class==conn_type));%obj.weights_yx(obj.wyx_class==conn_type) = 0;
                         else
-                            obj.weights_yx{f}(obj.wyx_class==conn_type) = mean(obj.weights_yx{f}(obj.wyx_class==conn_type));
+                            obj.weights_yx{f}(obj.wyx_class==conn_type) = (rand) * obj.xy_weight_range;%mean(obj.weights_yx{f}(obj.wyx_class==conn_type));
                         end
                     end
                 end
                 
                 % Set weights for Hidden->Output
-%                 obj.weights_yz{f}     = zeros(obj.ny_normal + obj.bias_hidden, obj.nz); % Weights from hidden to output layer
-%                 obj.weights_yz{f}(3:end,2:end) = obj.yz_weight_range.*rand(obj.grid_size^2,obj.grid_size^2) .* W;%diag(ones(1,obj.nz));
-%                 obj.weights_yz{f}(1,:) = obj.yz_weight_range.*rand(1,obj.nz);
-%                 obj.weights_yz{f}(2,1) = obj.yz_weight_range.*rand;
-%                 
+                
                 obj.weights_yz{f} = obj.yz_weight_range*(rand(obj.ny + obj.bias_hidden, obj.nz));%0.5*obj.yz_weight_range;%obj.yz_weight_range* ...
                 try
                     obj.weights_yz{f}(2:end,:) = obj.yz_weight_range .* diag(ones(1,obj.nz));
-                    obj.weights_yz{f}(1,2:end) = mean(obj.weights_yz{f}(1,2:end));
+                    obj.weights_yz{f}(1,2:end) = (c + rand) * obj.yz_weight_range;%mean(obj.weights_yz{f}(1,2:end));
+                    obj.weights_yz{f}(2,2:end) = -(rand) * obj.yz_weight_range;
                 catch
                     keyboard
                 end
-%                 wyz_class  = 0*obj.weights_yz{f};
-%                 wyz_class(3:end,2:end) = class_connection;
-%                 wyz_class(1,2:end) = 13;
-%                 obj.wyz_class=wyz_class;
-%                 if obj.use_class_connections
-%                     for conn_type = 1:13
-%                         if mod(conn_type,2)==1
-%                             obj.weights_yz{f}(obj.wyz_class==conn_type) = mean(obj.weights_yz{f}(obj.wyz_class==conn_type));%obj.weights_yx(obj.wyx_class==conn_type) = 0;
-%                         else
-%                             obj.weights_yz{f}(obj.wyz_class==conn_type) = mean(obj.weights_yz{f}(obj.wyz_class==conn_type));
-%                         end
-%                     end
-%                 end
                 
                 
                 
             end
-            %       keyboard;
-            %       obj.weights_yzs = obj.yz_weight_range* ...
-            %         (rand(obj.ny + obj.bias_hidden, obj.nzs))- 0.5*obj.yz_weight_range;
-            %       obj.weights_zzs = 0*[diag((rand(obj.nzs, 1)*obj.yz_weight_range+1))];
-            
-            % %       obj.yz_weight_range* ...
-            % %         (rand(obj.nzs + obj.bias_hidden, obj.nz))- 0.5*obj.yz_weight_range;
-            
-            
-            % For visualization: put all weights in input->hidden that are not
-            % used to 0;
-            %       obj.weights_xy(:, obj.ny_normal+obj.ny_memory+1:end) = 0;
-            %       obj.weights_xy(1:obj.bias_input+obj.n_inputs, obj.ny_normal+1:obj.ny_normal+obj.ny_memory) = 0;
-            %       obj.weights_xy(obj.bias_input+obj.n_inputs+1:obj.bias_input+obj.n_inputs*2, 1:obj.ny_normal) = 0;
-            %       obj.weights_xy(obj.bias_input+obj.n_inputs*2+1:obj.bias_input+obj.n_inputs*3, obj.ny_normal+1:obj.ny_normal+obj.ny_memory) = 0;
-            % %       obj.weights_xy(1, 1:obj.ny_normal) = obj.weights_xy(1, 1:obj.ny_normal) - obj.n_inputs .* log(1+exp(0))*obj.yz_weight_range/6;
-            % %       obj.weights_xy(2+obj.n_inputs:end, 1:obj.ny_normal) = 0;
-            % %       obj.weights_yzs(1,:) = obj.weights_yzs(1,:)+obj.yz_weight_range;
-            %       obj.weights_yz(obj.ny_normal+1 +obj.bias_hidden+obj.ny_memory:end, :) = 0;
-            %       obj.weights_yzs(obj.ny_normal+1 +obj.bias_hidden+obj.ny_memory:end, :) = 0;
-            %       obj.weights_xy(obj.bias_input+obj.n_inputs*2-1:obj.bias_input+obj.n_inputs*2,obj.ny_normal+1:obj.ny_normal+obj.ny_memory)=0;
         end
     end
     
