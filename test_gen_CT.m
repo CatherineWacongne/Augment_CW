@@ -1,5 +1,5 @@
 % test for generalization
-Date = '3_';
+Date = '4_';
 % load resultsCT2_1.mat
 t = CTTask;
 t.mem_dur = 0;
